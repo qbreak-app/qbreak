@@ -4,6 +4,6 @@
 // App version
 #define QBREAK_VERSION_MAJOR 0
 #define QBREAK_VERSION_MINOR 0
-#define QBREAK_VERSION_SUFFIX 5
+#define QBREAK_VERSION_SUFFIX 6
 
 #endif // CONFIG_H

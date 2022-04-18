@@ -1,7 +1,7 @@
 [Desktop Entry]
 GenericName=App to make the breaks
 Name=QBreak
-Version=0.0.5
+Version=0.0.6
 Exec=/usr/bin/qbreak
 Comment=App to make periodical breaks
 Icon=qbreak

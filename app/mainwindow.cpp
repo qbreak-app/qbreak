@@ -143,7 +143,7 @@ void MainWindow::applyConfig()
 
     if (mAppConfig.autostart)
     {
-        QString path_to_me = QFileInfo(QApplication::arguments().front()).canonicalPath();
+        auto path_to_me = QFileInfo(QApplication::arguments().front()).absoluteFilePath();
         autostart::enable(path_to_me.toStdString());
     }
     else
