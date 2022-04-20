@@ -18,6 +18,9 @@ const bool Default_Verbose = false;
 // Default autostart
 const bool Default_Autostart = true;
 
+const QString Default_Monitor = "";
+const QString Primary_Monitor = "[Primary]";
+
 
 // Used app name
 const QString AppName = "QBreak";
@@ -34,6 +37,7 @@ public:
         bool window_on_top                  = Default_WindowOnTop;
         bool verbose                        = Default_Verbose;
         bool autostart                      = Default_Autostart;
+        QString preferred_monitor           = Default_Monitor;
     };
 
     static void save(const config& cfg);

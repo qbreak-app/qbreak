@@ -183,13 +183,28 @@ void MainWindow::test_2()
 
 void MainWindow::showMe()
 {
-    // Show on primary screen
-    QScreen* screen = QGuiApplication::primaryScreen();
-    showFullScreen();
-    if (windowHandle())
+    QScreen* screen = nullptr;
+    if (mAppConfig.preferred_monitor == Primary_Monitor)
+        screen = QGuiApplication::primaryScreen();
+    else
     {
-        windowHandle()->setScreen(screen);
+        auto screen_list = QGuiApplication::screens();
+        auto screen_iter = std::find_if(screen_list.begin(), screen_list.end(), [this](QScreen* s){return s->name() == mAppConfig.preferred_monitor;});
+        if (screen_iter != screen_list.end())
+            screen = *screen_iter;
     }
+
+    if (screen)
+    {
+        show();
+        if (windowHandle())
+        {
+            windowHandle()->setScreen(screen);
+            setGeometry(screen->geometry());
+            qDebug() << "Window moved to screen " << screen->name() + " / " + screen->model() + " " + screen->manufacturer();
+        }
+    }
+    showFullScreen();
 }
 
 void MainWindow::hideMe()

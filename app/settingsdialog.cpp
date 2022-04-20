@@ -5,6 +5,7 @@
 #include <QToolTip>
 #include <QTimer>
 #include <QWindow>
+#include <QScreen>
 
 const QString ConversionError = "Integer value expected.";
 
@@ -31,6 +32,22 @@ void SettingsDialog::init()
     ui->mBreakIntervalEdit->setText(QString::number(c.longbreak_interval / 60));
     ui->mBreakDurationEdit->setText(QString::number(c.longbreak_length / 60));
     ui->mPostponeTimeEdit->setText(QString::number(c.longbreak_postpone_interval / 60));
+
+    ui->mPreferredMonitorCombobox->addItem(Primary_Monitor, Primary_Monitor);
+    int found_idx = 0;
+    auto ql = QGuiApplication::screens();
+    int screen_idx = 1;
+    for (QScreen* s: ql)
+    {
+        ui->mPreferredMonitorCombobox->addItem(s->name() +" / " + s->model() + " " + s->manufacturer(), s->name());
+
+        if (s->name() == c.preferred_monitor)
+            found_idx = screen_idx;
+
+        screen_idx++;
+    }
+
+    ui->mPreferredMonitorCombobox->setCurrentIndex(found_idx);
 }
 
 void SettingsDialog::accept()
@@ -41,6 +58,7 @@ void SettingsDialog::accept()
     c.longbreak_interval = ui->mBreakIntervalEdit->text().toInt() * 60;
     c.longbreak_length = ui->mBreakDurationEdit->text().toInt() * 60;
     c.longbreak_postpone_interval = ui->mPostponeTimeEdit->text().toInt() * 60;
+    c.preferred_monitor = ui->mPreferredMonitorCombobox->currentData().toString();
     app_settings::save(c);
 
     emit accepted();

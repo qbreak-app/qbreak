@@ -9,6 +9,7 @@ const QString Key_LongBreak_Length              = "LongBreak_Length";
 const QString Key_Window_On_Top                 = "Window_On_Top";
 const QString Key_Verbose                       = "Verbose";
 const QString Key_Autostart                     = "Autostart";
+const QString Key_PreferredMonitor              = "Preferred_Monitor";
 
 void app_settings::save(const config &cfg)
 {
@@ -20,6 +21,7 @@ void app_settings::save(const config &cfg)
     s.setValue(Key_Window_On_Top,               cfg.window_on_top);
     s.setValue(Key_Verbose,                     cfg.verbose);
     s.setValue(Key_Autostart,                   cfg.autostart);
+    s.setValue(Key_PreferredMonitor,            cfg.preferred_monitor);
 }
 
 app_settings::config app_settings::load()
@@ -33,5 +35,6 @@ app_settings::config app_settings::load()
     r.window_on_top                 = s.value(Key_Window_On_Top,                Default_Autostart).toBool();
     r.verbose                       = s.value(Key_Verbose,                      Default_Verbose).toBool();
     r.autostart                     = s.value(Key_Autostart,                    Default_Autostart).toBool();
+    r.preferred_monitor             = s.value(Key_PreferredMonitor,             Default_Monitor).toString();
     return r;
 }

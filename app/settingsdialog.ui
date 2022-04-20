@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>746</width>
-    <height>167</height>
+    <height>217</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -94,15 +94,25 @@
      <item row="3" column="1">
       <widget class="QLineEdit" name="mBreakDurationEdit"/>
      </item>
-     <item row="4" column="0">
+     <item row="5" column="0">
       <widget class="QLabel" name="label_5">
        <property name="text">
         <string>Postpone time (minutes)</string>
        </property>
       </widget>
      </item>
-     <item row="4" column="1">
+     <item row="5" column="1">
       <widget class="QLineEdit" name="mPostponeTimeEdit"/>
+     </item>
+     <item row="6" column="0">
+      <widget class="QLabel" name="label_6">
+       <property name="text">
+        <string>Preferred monitor</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="1">
+      <widget class="QComboBox" name="mPreferredMonitorCombobox"/>
      </item>
     </layout>
    </item>
