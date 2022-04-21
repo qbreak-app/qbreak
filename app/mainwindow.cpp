@@ -32,7 +32,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-static bool isDarkTheme()
+/*static bool isDarkTheme()
 {
     // Thanks to stackoverflow ! Another idea is to use https://successfulsoftware.net/2021/03/31/how-to-add-a-dark-theme-to-your-qt-application/
     auto label = QLabel("am I in the dark?");
@@ -41,7 +41,7 @@ static bool isDarkTheme()
     bool dark_theme_found = text_hsv_value > bg_hsv_value;
 
     return dark_theme_found;
-}
+}*/
 
 QIcon MainWindow::getAppIcon()
 {
@@ -63,15 +63,6 @@ void MainWindow::init()
 {
     // Icon
     setWindowIcon(getAppIcon());
-
-    // ToDo: finish the multiple monitor support
-    /*QDesktopWidget *widget = QApplication::desktop();
-    qDebug() << "Number of screens:" << widget->screenCount();
-
-    connect(widget, &QDesktopWidget::screenCountChanged, this, [](int screenCount){});
-    if (widget->screenCount() > 1) {
-    } else if (widget->screenCount() == 1){
-    }*/
 
     // Tray icon
     createTrayIcon();
@@ -315,8 +306,12 @@ void MainWindow::onLongBreakEnd()
     // Hide the window
     hideMe();
 
+    mProgressTimer->stop();
+
     // Start new timer
+    mTimer->stop();
     mTimer->start(std::chrono::seconds(mAppConfig.longbreak_interval));
+    mNotifyTimer->stop();
     mNotifyTimer->start(std::chrono::seconds(mAppConfig.longbreak_interval - 30));
 
     // Refresh UI
@@ -334,7 +329,9 @@ void MainWindow::onLongBreakPostpone()
     ui->mProgressBar->setValue(0);
 
     // Start timer again
+    mTimer->stop();
     mTimer->start(std::chrono::seconds(mAppConfig.longbreak_postpone_interval));
+    mNotifyTimer->stop();
     mNotifyTimer->start(std::chrono::seconds(mAppConfig.longbreak_postpone_interval - 30));
 
     // Refresh UI
