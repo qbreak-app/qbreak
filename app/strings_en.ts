@@ -4,22 +4,27 @@
 <context>
     <name>AboutDlg</name>
     <message>
-        <location filename="aboutdlg.ui" line="20"/>
+        <location filename="aboutdlg.ui" line="26"/>
         <source>Dialog</source>
         <translation></translation>
     </message>
     <message>
         <location filename="aboutdlg.ui" line="32"/>
+        <source>TextLabel</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="aboutdlg.ui" line="48"/>
         <source>QBreak.</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="aboutdlg.ui" line="51"/>
+        <location filename="aboutdlg.ui" line="67"/>
         <source>Version</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="aboutdlg.ui" line="70"/>
+        <location filename="aboutdlg.ui" line="86"/>
         <source>App to make breaks in work. Thanks to the authors of similar apps which inspired me to make this one.</source>
         <translation></translation>
     </message>
@@ -32,48 +37,66 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="213"/>
+        <location filename="mainwindow.ui" line="159"/>
+        <source>Skip this break</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="235"/>
         <source>Start next break</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="216"/>
+        <location filename="mainwindow.cpp" line="238"/>
         <source>Settings</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="219"/>
+        <location filename="mainwindow.cpp" line="241"/>
         <source>About</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="222"/>
+        <location filename="mainwindow.cpp" line="244"/>
         <source>Exit</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="250"/>
+        <location filename="mainwindow.cpp" line="272"/>
         <source>Less than a minute left until the next break.</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="252"/>
+        <location filename="mainwindow.cpp" line="274"/>
         <source>There are %1 minutes left until the next break.</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="259"/>
+        <location filename="mainwindow.cpp" line="283"/>
         <source>New break</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="260"/>
+        <location filename="mainwindow.cpp" line="284"/>
         <source>New break will start in %1 secs</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="269"/>
+        <location filename="mainwindow.cpp" line="293"/>
         <source>Postpone for </source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>QObject</name>
+    <message>
+        <location filename="mainwindow.cpp" line="225"/>
+        <source>%1 seconds</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="227"/>
+        <source>%1 minutes</source>
         <translation></translation>
     </message>
 </context>
@@ -107,6 +130,11 @@
     <message>
         <location filename="settingsdialog.ui" line="100"/>
         <source>Postpone time (minutes)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="settingsdialog.ui" line="110"/>
+        <source>Preferred monitor</source>
         <translation></translation>
     </message>
 </context>

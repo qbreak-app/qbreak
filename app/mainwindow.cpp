@@ -4,6 +4,7 @@
 #include "settings.h"
 #include "autostart.h"
 #include "aboutdlg.h"
+#include "config.h"
 
 #include <QMenu>
 #include <QAction>
@@ -81,6 +82,9 @@ void MainWindow::init()
     // Settings dialog
     mSettingsDialog = nullptr;
 
+    // No postpone attempts yet
+    mPostponeCount = 0;
+
     // Timer
     mTimer = new QTimer(this);
     mTimer->setTimerType(Qt::TimerType::CoarseTimer);
@@ -96,16 +100,17 @@ void MainWindow::init()
     mUpdateUITimer = new QTimer(this);
     mUpdateUITimer->setTimerType(Qt::TimerType::CoarseTimer);
     mUpdateUITimer->setSingleShot(false);
-    mUpdateUITimer->setInterval(std::chrono::minutes(1));
+    mUpdateUITimer->setInterval(std::chrono::seconds(INTERVAL_UPDATE_UI));
     connect(mUpdateUITimer, SIGNAL(timeout()), this, SLOT(onUpdateUI()));
     mUpdateUITimer->start();
 
     mProgressTimer = new QTimer(this);
-    mProgressTimer->setInterval(std::chrono::milliseconds(1000));
+    mProgressTimer->setInterval(std::chrono::milliseconds(INTERVAL_UPDATE_PROGRESS));
     mProgressTimer->setSingleShot(false);
     connect(mProgressTimer, SIGNAL(timeout()), this, SLOT(onProgress()));
 
     connect(ui->mPostponeButton, SIGNAL(clicked()), this, SLOT(onLongBreakPostpone()));
+    connect(ui->mSkipButton, SIGNAL(clicked()), this, SLOT(onLongBreakEnd()));
 
     // Use the latest config
     applyConfig();
@@ -164,7 +169,8 @@ void MainWindow::test_1()
 
     mAppConfig.window_on_top = true;
     mAppConfig.verbose = true;
-
+    applyConfig();
+    onUpdateUI();
     onLongBreakStart();
 }
 
@@ -173,12 +179,13 @@ void MainWindow::test_2()
     // 60 seconds test break
     mAppConfig.longbreak_length = 60;
     mAppConfig.longbreak_postpone_interval = 60;
-    mAppConfig.longbreak_interval = 60;
+    mAppConfig.longbreak_interval = 240;
 
     mAppConfig.window_on_top = true;
     mAppConfig.verbose = true;
 
     applyConfig();
+    onUpdateUI();
 }
 
 void MainWindow::showMe()
@@ -215,9 +222,9 @@ void MainWindow::hideMe()
 static QString secondsToText(int seconds)
 {
     if (seconds < 60)
-        return QString("%1s").arg(seconds);
+        return QObject::tr("%1 seconds").arg(seconds);
     else
-        return QString("%1m %2s").arg(seconds / 60).arg(seconds % 60);
+        return QObject::tr("%1 minutes").arg(seconds / 60);
 }
 
 void MainWindow::createTrayIcon()
@@ -260,13 +267,15 @@ void MainWindow::onUpdateUI()
         else
         if (mTimer->isActive())
         {
-            auto remaining = std::chrono::duration_cast<std::chrono::minutes>(mTimer->remainingTimeAsDuration());
-            if (remaining.count() == 0)
+            auto remaining_milliseconds = mTimer->remainingTime();
+            if (remaining_milliseconds == 0)
                 mTrayIcon->setToolTip(tr("Less than a minute left until the next break."));
             else
-                mTrayIcon->setToolTip(tr("There are %1 minutes left until the next break.").arg(remaining.count()));
+                mTrayIcon->setToolTip(tr("There are %1 minutes left until the next break.").arg(remaining_milliseconds / 1000 / 60));
         }
     }
+
+    ui->mSkipButton->setVisible(mPostponeCount > 0);
 }
 
 void MainWindow::onLongBreakNotify()
@@ -274,7 +283,7 @@ void MainWindow::onLongBreakNotify()
     mTrayIcon->showMessage(tr("New break"),
                            tr("New break will start in %1 secs").arg(Default_Notify_Length),
                            getAppIcon(),
-                           30000);
+                           INTERVAL_NOTIFICATION);
 }
 
 void MainWindow::onLongBreakStart()
@@ -297,6 +306,9 @@ void MainWindow::onLongBreakEnd()
 {
     qDebug() << "Long break ends.";
 
+    // Reset postpone counter
+    mPostponeCount = 0;
+
     // Prepare to next triggering
     ui->mProgressBar->setValue(0);
 
@@ -314,6 +326,8 @@ void MainWindow::onLongBreakEnd()
 void MainWindow::onLongBreakPostpone()
 {
     qDebug() << "Long break postponed.";
+    mPostponeCount++;
+
     hideMe();
 
     mProgressTimer->stop();
@@ -368,6 +382,7 @@ void MainWindow::onSettings()
             mAppConfig = app_settings::load();
             applyConfig();
             mSettingsDialog->hide();
+            onUpdateUI();
         });
 
         connect(mSettingsDialog, &QDialog::rejected, [this]()

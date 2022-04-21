@@ -4,6 +4,15 @@
 // App version
 #define QBREAK_VERSION_MAJOR 0
 #define QBREAK_VERSION_MINOR 0
-#define QBREAK_VERSION_SUFFIX 7
+#define QBREAK_VERSION_SUFFIX 8
+
+// How often UI is updated - interval in seconds
+#define INTERVAL_UPDATE_UI (60)
+
+// How often progress bar is updated - interval in milliseconds
+#define INTERVAL_UPDATE_PROGRESS (1000)
+
+// How long notification is shown - in milliseconds
+#define INTERVAL_NOTIFICATION (30000)
 
 #endif // CONFIG_H

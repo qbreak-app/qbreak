@@ -38,6 +38,7 @@ private:
     SettingsDialog* mSettingsDialog;
     std::chrono::steady_clock::time_point mBreakStartTime;
     app_settings::config mAppConfig;
+    int mPostponeCount;
 
     void init();
     void loadConfig();
@@ -58,6 +59,7 @@ public slots:
     void onLongBreakStart();
     void onLongBreakPostpone();
     void onLongBreakEnd();
+
     void onProgress();
     void onNextBreak();
     void onSettings();
