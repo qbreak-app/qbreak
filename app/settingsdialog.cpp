@@ -48,17 +48,31 @@ void SettingsDialog::init()
     }
 
     ui->mPreferredMonitorCombobox->setCurrentIndex(found_idx);
+
+    ui->mAudioComboBox->addItem(Empty_Play_Audio);
+    ui->mAudioComboBox->addItem(Embedded_Play_Audio);
+    if (c.play_audio != Empty_Play_Audio && c.play_audio != Embedded_Play_Audio)
+        ui->mAudioComboBox->addItem(c.play_audio);
+    for (int i = 0; i < ui->mAudioComboBox->count(); i++)
+        if (ui->mAudioComboBox->itemText(i) == c.play_audio)
+            ui->mAudioComboBox->setCurrentIndex(i);
+
+    ui->mScriptEdit->setText(c.script_on_break_finish);
 }
 
 void SettingsDialog::accept()
 {
     auto c = app_settings::load();
+
     c.autostart = ui->mAutostartCheckbox->isChecked();
     c.window_on_top = ui->mWindowOnTopCheckbox->isChecked();
     c.longbreak_interval = ui->mBreakIntervalEdit->text().toInt() * 60;
     c.longbreak_length = ui->mBreakDurationEdit->text().toInt() * 60;
     c.longbreak_postpone_interval = ui->mPostponeTimeEdit->text().toInt() * 60;
     c.preferred_monitor = ui->mPreferredMonitorCombobox->currentData().toString();
+    c.script_on_break_finish = ui->mScriptEdit->text();
+    c.play_audio = ui->mAudioComboBox->currentText();
+
     app_settings::save(c);
 
     emit accepted();

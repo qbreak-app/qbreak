@@ -21,9 +21,13 @@ const bool Default_Autostart = true;
 const QString Default_Monitor = "";
 const QString Primary_Monitor = "[Primary]";
 
+// Default behavior is not play any audio on break end.
+const QString Empty_Play_Audio = "[None]";
+const QString Embedded_Play_Audio = "[Embedded]";
 
 // Used app name
 const QString AppName = "QBreak";
+
 
 class app_settings
 {
@@ -38,6 +42,10 @@ public:
         bool verbose                        = Default_Verbose;
         bool autostart                      = Default_Autostart;
         QString preferred_monitor           = Default_Monitor;
+
+        // This value can be path to audio file or empty or [embedded] string
+        QString play_audio                  = Empty_Play_Audio;
+        QString script_on_break_finish;
     };
 
     static void save(const config& cfg);

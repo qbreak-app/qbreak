@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>746</width>
-    <height>217</height>
+    <width>800</width>
+    <height>359</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>746</width>
-    <height>167</height>
+    <height>220</height>
    </size>
   </property>
   <property name="maximumSize">
@@ -113,6 +113,30 @@
      </item>
      <item row="6" column="1">
       <widget class="QComboBox" name="mPreferredMonitorCombobox"/>
+     </item>
+     <item row="8" column="0">
+      <widget class="QLabel" name="label_7">
+       <property name="text">
+        <string>Audio to play when break finish</string>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="1">
+      <widget class="QComboBox" name="mAudioComboBox">
+       <property name="editable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="0">
+      <widget class="QLabel" name="label_8">
+       <property name="text">
+        <string>Script to run when break finish</string>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="1">
+      <widget class="QLineEdit" name="mScriptEdit"/>
      </item>
     </layout>
    </item>

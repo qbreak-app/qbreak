@@ -16,6 +16,7 @@
 #include <QScreen>
 #include <QWindow>
 #include <QFileInfo>
+#include <QSound>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -170,7 +171,7 @@ void MainWindow::test_2()
     // 60 seconds test break
     mAppConfig.longbreak_length = 60;
     mAppConfig.longbreak_postpone_interval = 60;
-    mAppConfig.longbreak_interval = 240;
+    mAppConfig.longbreak_interval = 60;
 
     mAppConfig.window_on_top = true;
     mAppConfig.verbose = true;
@@ -316,6 +317,23 @@ void MainWindow::onLongBreakEnd()
 
     // Refresh UI
     onUpdateUI();
+
+    // Play audio
+    if (mAppConfig.play_audio != Empty_Play_Audio)
+    {
+        if (mAppConfig.play_audio == Embedded_Play_Audio)
+            QSound::play(":/assets/sound/alarm-retro.wav");
+        else
+            QSound::play(mAppConfig.play_audio);
+    }
+
+    // Run script
+    if (!mAppConfig.script_on_break_finish.isEmpty())
+    {
+        int retcode = system(mAppConfig.script_on_break_finish.toStdString().c_str());
+        if (retcode != 0)
+            qDebug() << "User script exited with error code " << retcode;
+    }
 }
 
 void MainWindow::onLongBreakPostpone()
