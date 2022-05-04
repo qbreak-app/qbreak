@@ -6,6 +6,7 @@
 #include <QTimer>
 #include <QWindow>
 #include <QScreen>
+#include <QFileDialog>
 
 const QString ConversionError = "Integer value expected.";
 
@@ -24,6 +25,8 @@ SettingsDialog::~SettingsDialog()
 
 void SettingsDialog::init()
 {
+    mDontRunEvents = true;
+
     setWindowTitle("Settings");
 
     auto c = app_settings::load();
@@ -49,15 +52,22 @@ void SettingsDialog::init()
 
     ui->mPreferredMonitorCombobox->setCurrentIndex(found_idx);
 
-    ui->mAudioComboBox->addItem(Empty_Play_Audio);
-    ui->mAudioComboBox->addItem(Embedded_Play_Audio);
-    if (c.play_audio != Empty_Play_Audio && c.play_audio != Embedded_Play_Audio)
-        ui->mAudioComboBox->addItem(c.play_audio);
+    // Fill audio combo box
+    auto audios = {Audio_Empty, Audio_Default_1, Audio_Default_2, Audio_Custom};
+    ui->mAudioComboBox->addItems(audios);
+    mCustomAudioIdx = audios.size() - 1;
+
+    // Preselect active audio
     for (int i = 0; i < ui->mAudioComboBox->count(); i++)
         if (ui->mAudioComboBox->itemText(i) == c.play_audio)
             ui->mAudioComboBox->setCurrentIndex(i);
 
+    mCustomAudioPath = c.play_audio_custom;
+
     ui->mScriptEdit->setText(c.script_on_break_finish);
+    connect(ui->mAudioComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onAudioIndexChanged(int)));
+
+    mDontRunEvents = false;
 }
 
 void SettingsDialog::accept()
@@ -72,8 +82,28 @@ void SettingsDialog::accept()
     c.preferred_monitor = ui->mPreferredMonitorCombobox->currentData().toString();
     c.script_on_break_finish = ui->mScriptEdit->text();
     c.play_audio = ui->mAudioComboBox->currentText();
+    if (c.play_audio == Audio_Custom)
+        c.play_audio_custom = mCustomAudioPath;
 
     app_settings::save(c);
 
     emit accepted();
+}
+
+void SettingsDialog::onAudioIndexChanged(int idx)
+{
+    if (idx == mCustomAudioIdx)
+    {
+        // Ask about path to audio file
+        auto path = QFileDialog::getOpenFileName(this, tr("Select audio file"), QString(), ".wav;*.mp3;*.ogg");
+        if (!path.isEmpty())
+        {
+            mCustomAudioPath = path;
+            // ToDo: show message "audio is selected"
+        }
+        else
+        {
+            // ToDo: show message "audio is not selected"
+        }
+    }
 }

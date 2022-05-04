@@ -124,14 +124,14 @@
      <item row="8" column="1">
       <widget class="QComboBox" name="mAudioComboBox">
        <property name="editable">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
      </item>
      <item row="9" column="0">
       <widget class="QLabel" name="label_8">
        <property name="text">
-        <string>Script to run when break finish</string>
+        <string>Command to run when break finish</string>
        </property>
       </widget>
      </item>

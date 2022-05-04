@@ -2,6 +2,7 @@
 #define SETTINGS_H
 
 #include <QString>
+#include <map>
 
 // Default values in seconds
 const int Default_LongBreak_Interval = 50 * 60;
@@ -22,8 +23,22 @@ const QString Default_Monitor = "";
 const QString Primary_Monitor = "[Primary]";
 
 // Default behavior is not play any audio on break end.
-const QString Empty_Play_Audio = "[None]";
-const QString Embedded_Play_Audio = "[Embedded]";
+const QString Audio_Empty = "None";
+const QString Audio_Default_1 = "Default 1";
+const QString Audio_Default_2 = "Default_2";
+const QString Audio_Custom = "Custom...";
+
+struct audio_item
+{
+    QString name;
+    QString path;
+};
+
+const std::map<QString, QString> AudioMap {
+    {Audio_Default_1, ":/assets/sound/alarm-retro.wav"},
+    {Audio_Default_2, ":/assets/sound/alarm-poehali.wav"},
+};
+
 
 // Used app name
 const QString AppName = "QBreak";
@@ -44,7 +59,8 @@ public:
         QString preferred_monitor           = Default_Monitor;
 
         // This value can be path to audio file or empty or [embedded] string
-        QString play_audio                  = Empty_Play_Audio;
+        QString play_audio                  = Audio_Empty;
+        QString play_audio_custom;
         QString script_on_break_finish;
     };
 

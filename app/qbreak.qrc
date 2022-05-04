@@ -13,5 +13,6 @@
         <file>assets/images/coffee_cup/icon_128x128.png</file>
         <file>assets/images/coffee_cup/icon_512x512.png</file>
         <file>assets/sound/alarm-retro.wav</file>
+        <file>assets/sound/alarm-poehali.wav</file>
     </qresource>
 </RCC>

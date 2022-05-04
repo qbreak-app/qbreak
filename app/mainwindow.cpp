@@ -319,13 +319,16 @@ void MainWindow::onLongBreakEnd()
     onUpdateUI();
 
     // Play audio
-    if (mAppConfig.play_audio != Empty_Play_Audio)
+    if (mAppConfig.play_audio != Audio_Empty && mAppConfig.play_audio != Audio_Custom)
     {
-        if (mAppConfig.play_audio == Embedded_Play_Audio)
-            QSound::play(":/assets/sound/alarm-retro.wav");
-        else
-            QSound::play(mAppConfig.play_audio);
+        auto iter = AudioMap.find(mAppConfig.play_audio);
+        if (iter != AudioMap.end())
+            QSound::play(iter->second);
     }
+    else
+    if (mAppConfig.play_audio == Audio_Custom)
+        QSound::play(mAppConfig.play_audio_custom);
+
 
     // Run script
     if (!mAppConfig.script_on_break_finish.isEmpty())

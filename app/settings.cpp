@@ -10,8 +10,9 @@ const QString Key_Window_On_Top                 = "Window_On_Top";
 const QString Key_Verbose                       = "Verbose";
 const QString Key_Autostart                     = "Autostart";
 const QString Key_PreferredMonitor              = "Preferred_Monitor";
-const QString Key_Audio_On_Break_Finish         = "Audio_On_Break_Finish";
-const QString Key_Script_On_Break_Finish        = "Script_On_Break_Finish";
+const QString Key_Audio                         = "Audio";
+const QString Key_Audio_Custom                  = "Audio_Custom";
+const QString Key_Script                        = "Script";
 
 void app_settings::save(const config &cfg)
 {
@@ -24,8 +25,9 @@ void app_settings::save(const config &cfg)
     s.setValue(Key_Verbose,                     cfg.verbose);
     s.setValue(Key_Autostart,                   cfg.autostart);
     s.setValue(Key_PreferredMonitor,            cfg.preferred_monitor);
-    s.setValue(Key_Audio_On_Break_Finish,       cfg.play_audio);
-    s.setValue(Key_Script_On_Break_Finish,      cfg.script_on_break_finish);
+    s.setValue(Key_Audio,                       cfg.play_audio);
+    s.setValue(Key_Audio_Custom,                cfg.play_audio_custom);
+    s.setValue(Key_Script,                      cfg.script_on_break_finish);
 }
 
 app_settings::config app_settings::load()
@@ -40,8 +42,9 @@ app_settings::config app_settings::load()
     r.verbose                       = s.value(Key_Verbose,                      Default_Verbose).toBool();
     r.autostart                     = s.value(Key_Autostart,                    Default_Autostart).toBool();
     r.preferred_monitor             = s.value(Key_PreferredMonitor,             Default_Monitor).toString();
-    r.play_audio                    = s.value(Key_Audio_On_Break_Finish,        Empty_Play_Audio).toString();
-    r.script_on_break_finish        = s.value(Key_Script_On_Break_Finish,       QString()).toString();
+    r.play_audio                    = s.value(Key_Audio,                        Audio_Empty).toString();
+    r.play_audio_custom             = s.value(Key_Audio_Custom,                 Audio_Custom).toString();
+    r.script_on_break_finish        = s.value(Key_Script,                       QString()).toString();
 
     return r;
 }

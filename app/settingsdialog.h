@@ -17,11 +17,15 @@ public:
 
 private:
     Ui::SettingsDialog *ui;
+    QString mCustomAudioPath;
+    int mCustomAudioIdx;
+    bool mDontRunEvents;
 
     void init();
 
 private slots:
     void accept();
+    void onAudioIndexChanged(int idx);
 };
 
 #endif // SETTINGSDIALOG_H
