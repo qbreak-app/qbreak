@@ -4,8 +4,12 @@
 <context>
     <name>AboutDlg</name>
     <message>
-        <location filename="aboutdlg.ui" line="26"/>
         <source>Dialog</source>
+        <translation type="vanished">О программе</translation>
+    </message>
+    <message>
+        <location filename="aboutdlg.ui" line="26"/>
+        <source>About</source>
         <translation>О программе</translation>
     </message>
     <message>
@@ -37,52 +41,52 @@
         <translation>QBreak</translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="159"/>
+        <location filename="mainwindow.ui" line="181"/>
         <source>Skip this break</source>
         <translation>Пропустить</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="235"/>
+        <location filename="mainwindow.cpp" line="228"/>
         <source>Start next break</source>
         <translation>Начать перерыв</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="238"/>
+        <location filename="mainwindow.cpp" line="231"/>
         <source>Settings</source>
         <translation>Настройки</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="241"/>
+        <location filename="mainwindow.cpp" line="234"/>
         <source>About</source>
         <translation>О программе</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="244"/>
+        <location filename="mainwindow.cpp" line="237"/>
         <source>Exit</source>
         <translation>Выход</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="272"/>
+        <location filename="mainwindow.cpp" line="265"/>
         <source>Less than a minute left until the next break.</source>
         <translation>До перерыва осталось меньше минуты.</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="274"/>
+        <location filename="mainwindow.cpp" line="267"/>
         <source>There are %1 minutes left until the next break.</source>
         <translation>Осталось %1 минут до перерыва.</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="283"/>
+        <location filename="mainwindow.cpp" line="276"/>
         <source>New break</source>
         <translation>Скоро перерыв</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="284"/>
+        <location filename="mainwindow.cpp" line="277"/>
         <source>New break will start in %1 secs</source>
         <translation>Перерыв начнется через %1 секунд.</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="293"/>
+        <location filename="mainwindow.cpp" line="286"/>
         <source>Postpone for </source>
         <translation>Отложить на</translation>
     </message>
@@ -90,12 +94,12 @@
 <context>
     <name>QObject</name>
     <message>
-        <location filename="mainwindow.cpp" line="225"/>
+        <location filename="mainwindow.cpp" line="218"/>
         <source>%1 seconds</source>
         <translation>%1 секунд</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="227"/>
+        <location filename="mainwindow.cpp" line="220"/>
         <source>%1 minutes</source>
         <translation>%1 минут</translation>
     </message>
@@ -138,6 +142,16 @@
         <translation>Предпочитаемый монитор</translation>
     </message>
     <message>
+        <location filename="settingsdialog.ui" line="120"/>
+        <source>Audio to play when break finish</source>
+        <translation>Проигрывать по окончанию перерыва</translation>
+    </message>
+    <message>
+        <location filename="settingsdialog.ui" line="134"/>
+        <source>Command to run when break finish</source>
+        <translation>Запускать по окончанию перерыва</translation>
+    </message>
+    <message>
         <source>Break interval (seconds)</source>
         <translation type="vanished">Промежуток между перерывами в секундах</translation>
     </message>
@@ -148,6 +162,16 @@
     <message>
         <source>Postpone time (seconds)</source>
         <translation type="vanished">На сколько можно отложить перерыв (в секундах)</translation>
+    </message>
+    <message>
+        <location filename="settingsdialog.cpp" line="104"/>
+        <source>Select audio file</source>
+        <translation>Выбрать аудиозапись</translation>
+    </message>
+    <message>
+        <location filename="settingsdialog.cpp" line="104"/>
+        <source>Sound files(*.wav *.mp3 *.ogg)</source>
+        <translation>Аудио файлы (*.wav *.mp3 *.ogg)</translation>
     </message>
 </context>
 </TS>

@@ -2,9 +2,9 @@
 #define CONFIG_H
 
 // App version
-#define QBREAK_VERSION_MAJOR  0
-#define QBREAK_VERSION_MINOR  1
-#define QBREAK_VERSION_SUFFIX 0
+#define QBREAK_VERSION_MAJOR    0
+#define QBREAK_VERSION_MINOR    1
+#define QBREAK_VERSION_SUFFIX   0
 
 // How often UI is updated - interval in seconds
 #define INTERVAL_UPDATE_UI          (60)

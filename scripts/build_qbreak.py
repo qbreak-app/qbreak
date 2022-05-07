@@ -13,8 +13,8 @@ EXIT_OK = 0
 EXIT_ERROR = 1
 
 # Check if Qt is specified
-if not 'QTDIR' in os.environ:
-    print('Qt location must be set in QTDIR environment variable.')
+if not 'QT_HOME' in os.environ:
+    print('Qt location must be set in QT_HOME environment variable.')
     exit(1)
 
 # Prepare build directory
@@ -28,6 +28,10 @@ version_suffix = build_utils.get_version(app_source / 'config.h', 'QBREAK_VERSIO
 version_minor = build_utils.get_version(app_source / 'config.h', 'QBREAK_VERSION_MINOR')
 version_major = build_utils.get_version(app_source / 'config.h', 'QBREAK_VERSION_MAJOR')
 
+if version_major is None or version_minor is None or version_suffix is None:
+    print('App version is not found, exiting.')
+    exit(EXIT_OK)
+    
 app_version = f'{version_major}.{version_minor}.{version_suffix}'
 print (f'Found QBreak version: {app_version}')
 
@@ -37,7 +41,9 @@ os.chdir(build_dir)
 if platform.system() == 'Linux':
     print('Linux detected')
     print('Configure...')
-    retcode = os.system('qmake ../../app')
+
+    qmake_path = Path(os.environ['QT_HOME']) / 'bin' / 'qmake'
+    retcode = os.system(f'{qmake_path} ../../app')
     if retcode != 0:
         print(f'qmake call failed with code {retcode}')
         exit(retcode)
@@ -69,7 +75,7 @@ if platform.system() == 'Linux':
         '-always-overwrite', 
         '-verbose=2', 
         '-appimage', 
-        '-qmake=' + os.environ['QTDIR'] + '/bin/qmake', 
+        '-qmake=' + os.environ['QT_HOME'] + '/bin/qmake', 
         '-unsupported-allow-new-glibc', 
         #'-no-translations', 
         '-extra-plugins=iconengines,platformthemes/libqgtk3.so'

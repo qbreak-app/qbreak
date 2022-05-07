@@ -7,6 +7,7 @@ AboutDlg::AboutDlg(QWidget *parent) :
     ui(new Ui::AboutDlg)
 {
     ui->setupUi(this);
+
     ui->mAppIcon->setPixmap(QPixmap(":/assets/images/coffee_cup/icon_96x96"));
     auto version_text = QString("Version %1.%2.%3")
             .arg(QBREAK_VERSION_MAJOR)

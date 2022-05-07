@@ -80,7 +80,7 @@ def get_version(path, name):
     with codecs.open(path, mode='r', encoding='utf-8') as f:
         t = f.read()
 
-    pattern = r"#define " + name + r" (?P<number>[\d]+)"
+    pattern = r"#define " + name + r"[\s]+(?P<number>[\d]+)"
     m = re.search(pattern=pattern, string=t, flags=re.MULTILINE)
     if m is not None:
         return m.group("number")

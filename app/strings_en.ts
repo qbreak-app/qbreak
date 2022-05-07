@@ -5,8 +5,8 @@
     <name>AboutDlg</name>
     <message>
         <location filename="aboutdlg.ui" line="26"/>
-        <source>Dialog</source>
-        <translation></translation>
+        <source>About</source>
+        <translation>About</translation>
     </message>
     <message>
         <location filename="aboutdlg.ui" line="32"/>
@@ -37,52 +37,52 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.ui" line="159"/>
+        <location filename="mainwindow.ui" line="181"/>
         <source>Skip this break</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="235"/>
+        <location filename="mainwindow.cpp" line="228"/>
         <source>Start next break</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="238"/>
+        <location filename="mainwindow.cpp" line="231"/>
         <source>Settings</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="241"/>
+        <location filename="mainwindow.cpp" line="234"/>
         <source>About</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="244"/>
+        <location filename="mainwindow.cpp" line="237"/>
         <source>Exit</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="272"/>
+        <location filename="mainwindow.cpp" line="265"/>
         <source>Less than a minute left until the next break.</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="274"/>
+        <location filename="mainwindow.cpp" line="267"/>
         <source>There are %1 minutes left until the next break.</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="283"/>
+        <location filename="mainwindow.cpp" line="276"/>
         <source>New break</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="284"/>
+        <location filename="mainwindow.cpp" line="277"/>
         <source>New break will start in %1 secs</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="293"/>
+        <location filename="mainwindow.cpp" line="286"/>
         <source>Postpone for </source>
         <translation></translation>
     </message>
@@ -90,12 +90,12 @@
 <context>
     <name>QObject</name>
     <message>
-        <location filename="mainwindow.cpp" line="225"/>
+        <location filename="mainwindow.cpp" line="218"/>
         <source>%1 seconds</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="227"/>
+        <location filename="mainwindow.cpp" line="220"/>
         <source>%1 minutes</source>
         <translation></translation>
     </message>
@@ -136,6 +136,26 @@
         <location filename="settingsdialog.ui" line="110"/>
         <source>Preferred monitor</source>
         <translation></translation>
+    </message>
+    <message>
+        <location filename="settingsdialog.ui" line="120"/>
+        <source>Audio to play when break finish</source>
+        <translation>Audio to play when break finish</translation>
+    </message>
+    <message>
+        <location filename="settingsdialog.ui" line="134"/>
+        <source>Command to run when break finish</source>
+        <translation>Command to run when break finish</translation>
+    </message>
+    <message>
+        <location filename="settingsdialog.cpp" line="104"/>
+        <source>Select audio file</source>
+        <translation>Select audio file</translation>
+    </message>
+    <message>
+        <location filename="settingsdialog.cpp" line="104"/>
+        <source>Sound files(*.wav *.mp3 *.ogg)</source>
+        <translation>Sound files(*.wav *.mp3 *.ogg)</translation>
     </message>
 </context>
 </TS>
