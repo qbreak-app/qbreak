@@ -9,26 +9,30 @@ CONFIG += c++17 lrelease embed_translations
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    aboutdlg.cpp \
-    autostart.cpp \
-    main.cpp \
-    mainwindow.cpp \
-    settings.cpp \
-    settingsdialog.cpp \
-    runguard.cpp
+    aboutdlg.cpp        \
+    autostart.cpp       \
+    main.cpp            \
+    mainwindow.cpp      \
+    settings.cpp        \
+    settingsdialog.cpp  \
+    runguard.cpp        \
+    audio_support.cpp
+
 
 HEADERS += \
-    aboutdlg.h \
-    autostart.h \
-    config.h \
-    mainwindow.h \
-    settings.h \
-    settingsdialog.h \
-    runguard.h
+    aboutdlg.h          \
+    autostart.h         \
+    config.h            \
+    mainwindow.h        \
+    settings.h          \
+    settingsdialog.h    \
+    runguard.h          \
+    audio_support.h
+
 
 FORMS += \
-    aboutdlg.ui \
-    mainwindow.ui \
+    aboutdlg.ui         \
+    mainwindow.ui       \
     settingsdialog.ui
 
 RESOURCES = qbreak.qrc

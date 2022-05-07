@@ -25,7 +25,7 @@ const QString Primary_Monitor = "[Primary]";
 // Default behavior is not play any audio on break end.
 const QString Audio_Empty = "None";
 const QString Audio_Default_1 = "Default 1";
-const QString Audio_Default_2 = "Default_2";
+const QString Audio_Default_2 = "Default 2";
 const QString Audio_Custom = "Custom...";
 
 struct audio_item
@@ -47,6 +47,12 @@ const QString AppName = "QBreak";
 class app_settings
 {
 public:
+    struct selected_audio
+    {
+        QString name = Audio_Empty;
+        QString path;
+    };
+
     struct config
     {
         // Seconds
@@ -59,8 +65,7 @@ public:
         QString preferred_monitor           = Default_Monitor;
 
         // This value can be path to audio file or empty or [embedded] string
-        QString play_audio                  = Audio_Empty;
-        QString play_audio_custom;
+        selected_audio play_audio;
         QString script_on_break_finish;
     };
 

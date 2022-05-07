@@ -5,6 +5,7 @@
 #include "autostart.h"
 #include "aboutdlg.h"
 #include "config.h"
+#include "audio_support.h"
 
 #include <QMenu>
 #include <QAction>
@@ -318,17 +319,8 @@ void MainWindow::onLongBreakEnd()
     // Refresh UI
     onUpdateUI();
 
-    // Play audio
-    if (mAppConfig.play_audio != Audio_Empty && mAppConfig.play_audio != Audio_Custom)
-    {
-        auto iter = AudioMap.find(mAppConfig.play_audio);
-        if (iter != AudioMap.end())
-            QSound::play(iter->second);
-    }
-    else
-    if (mAppConfig.play_audio == Audio_Custom)
-        QSound::play(mAppConfig.play_audio_custom);
-
+    // Play selecged audio
+    play_audio(mAppConfig.play_audio);
 
     // Run script
     if (!mAppConfig.script_on_break_finish.isEmpty())

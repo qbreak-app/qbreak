@@ -1,12 +1,14 @@
 #include "settingsdialog.h"
 #include "ui_settingsdialog.h"
 #include "settings.h"
+#include "audio_support.h"
 
 #include <QToolTip>
 #include <QTimer>
 #include <QWindow>
 #include <QScreen>
 #include <QFileDialog>
+#include <QStandardPaths>
 
 const QString ConversionError = "Integer value expected.";
 
@@ -25,7 +27,7 @@ SettingsDialog::~SettingsDialog()
 
 void SettingsDialog::init()
 {
-    mDontRunEvents = true;
+    mSkipAudioChangeEvent = true;
 
     setWindowTitle("Settings");
 
@@ -59,15 +61,15 @@ void SettingsDialog::init()
 
     // Preselect active audio
     for (int i = 0; i < ui->mAudioComboBox->count(); i++)
-        if (ui->mAudioComboBox->itemText(i) == c.play_audio)
+        if (ui->mAudioComboBox->itemText(i) == c.play_audio.name)
             ui->mAudioComboBox->setCurrentIndex(i);
 
-    mCustomAudioPath = c.play_audio_custom;
+    mCustomAudioPath = c.play_audio.path;
 
     ui->mScriptEdit->setText(c.script_on_break_finish);
     connect(ui->mAudioComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onAudioIndexChanged(int)));
 
-    mDontRunEvents = false;
+    mSkipAudioChangeEvent = false;
 }
 
 void SettingsDialog::accept()
@@ -81,9 +83,9 @@ void SettingsDialog::accept()
     c.longbreak_postpone_interval = ui->mPostponeTimeEdit->text().toInt() * 60;
     c.preferred_monitor = ui->mPreferredMonitorCombobox->currentData().toString();
     c.script_on_break_finish = ui->mScriptEdit->text();
-    c.play_audio = ui->mAudioComboBox->currentText();
-    if (c.play_audio == Audio_Custom)
-        c.play_audio_custom = mCustomAudioPath;
+    c.play_audio.name = ui->mAudioComboBox->currentText();
+    if (c.play_audio.name == Audio_Custom)
+        c.play_audio.path = mCustomAudioPath;
 
     app_settings::save(c);
 
@@ -92,10 +94,14 @@ void SettingsDialog::accept()
 
 void SettingsDialog::onAudioIndexChanged(int idx)
 {
+    if (mSkipAudioChangeEvent)
+        return;
+
     if (idx == mCustomAudioIdx)
     {
         // Ask about path to audio file
-        auto path = QFileDialog::getOpenFileName(this, tr("Select audio file"), QString(), ".wav;*.mp3;*.ogg");
+        auto home = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
+        auto path = QFileDialog::getOpenFileName(this, tr("Select audio file"), home, tr("Sound files(*.wav *.mp3 *.ogg)"));
         if (!path.isEmpty())
         {
             mCustomAudioPath = path;
@@ -106,4 +112,8 @@ void SettingsDialog::onAudioIndexChanged(int idx)
             // ToDo: show message "audio is not selected"
         }
     }
+
+    // Play selected audio to ensure this is fine
+    play_audio({.name = ui->mAudioComboBox->itemText(idx), .path = mCustomAudioPath});
+
 }

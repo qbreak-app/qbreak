@@ -19,7 +19,7 @@ private:
     Ui::SettingsDialog *ui;
     QString mCustomAudioPath;
     int mCustomAudioIdx;
-    bool mDontRunEvents;
+    bool mSkipAudioChangeEvent;
 
     void init();
 
