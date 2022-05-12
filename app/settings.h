@@ -19,6 +19,9 @@ const bool Default_Verbose = false;
 // Default autostart
 const bool Default_Autostart = true;
 
+// Default idle timeout
+const int Default_Idle_Timeout = 0;
+
 const QString Default_Monitor = "";
 const QString Primary_Monitor = "[Primary]";
 
@@ -67,6 +70,9 @@ public:
         // This value can be path to audio file or empty or [embedded] string
         selected_audio play_audio;
         QString script_on_break_finish;
+
+        // Zero means "idle is not tracked"
+        int idle_timeout                    = Default_Idle_Timeout;
     };
 
     static void save(const config& cfg);

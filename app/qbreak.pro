@@ -16,7 +16,8 @@ SOURCES += \
     settings.cpp        \
     settingsdialog.cpp  \
     runguard.cpp        \
-    audio_support.cpp
+    audio_support.cpp   \
+    idle_tracking.cpp
 
 
 HEADERS += \
@@ -27,7 +28,8 @@ HEADERS += \
     settings.h          \
     settingsdialog.h    \
     runguard.h          \
-    audio_support.h
+    audio_support.h     \
+    idle_tracking.h
 
 
 FORMS += \
@@ -45,3 +47,7 @@ unix:!macx: DEFINES += TARGET_LINUX
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+unix:LIBS += -L/usr/X11R6/lib/ -lX11 -lXext -lXss
+
+

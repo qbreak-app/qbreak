@@ -69,6 +69,9 @@ void SettingsDialog::init()
     ui->mScriptEdit->setText(c.script_on_break_finish);
     connect(ui->mAudioComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onAudioIndexChanged(int)));
 
+    // Idle timeout
+    ui->mIdleTimeoutSpinbox->setValue(c.idle_timeout);
+
     mSkipAudioChangeEvent = false;
 }
 
@@ -87,6 +90,7 @@ void SettingsDialog::accept()
     if (c.play_audio.name == Audio_Custom)
         c.play_audio.path = mCustomAudioPath;
 
+    c.idle_timeout = ui->mIdleTimeoutSpinbox->value();
     app_settings::save(c);
 
     emit accepted();

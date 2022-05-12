@@ -6,6 +6,7 @@
 #include "aboutdlg.h"
 #include "config.h"
 #include "audio_support.h"
+#include "idle_tracking.h"
 
 #include <QMenu>
 #include <QAction>
@@ -78,18 +79,19 @@ void MainWindow::init()
     // No postpone attempts yet
     mPostponeCount = 0;
 
-    // Timer
+    // Timer to start break
     mTimer = new QTimer(this);
     mTimer->setTimerType(Qt::TimerType::CoarseTimer);
     mTimer->setSingleShot(true);
     connect(mTimer, SIGNAL(timeout()), this, SLOT(onLongBreakStart()));
 
+    // Timer to run notification about upcoming break
     mNotifyTimer = new QTimer(this);
     mNotifyTimer->setTimerType(Qt::TimerType::CoarseTimer);
     mNotifyTimer->setSingleShot(true);
     connect(mNotifyTimer, SIGNAL(timeout()), this, SLOT(onLongBreakNotify()));
 
-
+    // Just update UI once per minute
     mUpdateUITimer = new QTimer(this);
     mUpdateUITimer->setTimerType(Qt::TimerType::CoarseTimer);
     mUpdateUITimer->setSingleShot(false);
@@ -97,6 +99,7 @@ void MainWindow::init()
     connect(mUpdateUITimer, SIGNAL(timeout()), this, SLOT(onUpdateUI()));
     mUpdateUITimer->start();
 
+    // Timer to draw progress bar during the break
     mProgressTimer = new QTimer(this);
     mProgressTimer->setInterval(std::chrono::milliseconds(INTERVAL_UPDATE_PROGRESS));
     mProgressTimer->setSingleShot(false);
@@ -269,6 +272,25 @@ void MainWindow::onUpdateUI()
     }
 
     ui->mSkipButton->setVisible(mPostponeCount > 0);
+
+    if (mAppConfig.idle_timeout != 0)
+    {
+        int idle_minutes = get_idle_time();
+        if (idle_minutes >= mAppConfig.idle_timeout)
+        {
+            // Idle mode is active. Increase the timer interval
+            mIdleStart = std::chrono::steady_clock::now() - std::chrono::minutes(idle_minutes);
+
+            int remaining_minutes = mTimer->remainingTime() / 1000 / 60;
+
+            // Change the time
+            mTimer->stop();
+            mTimer->start(std::chrono::minutes(remaining_minutes + idle_minutes));
+
+            qDebug() << "Idle detected for " << idle_minutes << " minutes. "
+                     << "Remaining " << mTimer->remainingTime() / 1000 / 60 << " until the next break.";
+        }
+    }
 }
 
 void MainWindow::onLongBreakNotify()

@@ -39,6 +39,7 @@ private:
     std::chrono::steady_clock::time_point mBreakStartTime;
     app_settings::config mAppConfig;
     int mPostponeCount;
+    std::chrono::steady_clock::time_point mIdleStart;
 
     void init();
     void loadConfig();
