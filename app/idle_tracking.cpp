@@ -9,8 +9,7 @@
 #include <unistd.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#include <X11/extensions/scrnsaver.h>
-
+#include <X11/extensions/scrnsaver.h> // This can require libxss-dev to be installed
 
 int get_idle_time()
 {

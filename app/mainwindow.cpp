@@ -273,7 +273,7 @@ void MainWindow::onUpdateUI()
 
     ui->mSkipButton->setVisible(mPostponeCount > 0);
 
-    if (mAppConfig.idle_timeout != 0)
+    if (mAppConfig.idle_timeout != 0 && mTimer->isActive())
     {
         int idle_minutes = get_idle_time();
         if (idle_minutes >= mAppConfig.idle_timeout)
