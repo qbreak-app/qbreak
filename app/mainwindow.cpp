@@ -79,6 +79,9 @@ void MainWindow::init()
     // No postpone attempts yet
     mPostponeCount = 0;
 
+    // Idle is not detected yet
+    mLastIdleMilliseconds = 0;
+
     // Timer to start break
     mTimer = new QTimer(this);
     mTimer->setTimerType(Qt::TimerType::CoarseTimer);
@@ -253,6 +256,36 @@ void MainWindow::createTrayIcon()
 
 void MainWindow::onUpdateUI()
 {
+    if (mAppConfig.idle_timeout != 0 && mTimer->isActive())
+    {
+        int idle_milliseconds = get_idle_time();
+        if (idle_milliseconds >= mAppConfig.idle_timeout * 60 * 1000)
+        {
+            // Idle mode is active. Increase the timer interval
+            mIdleStart = std::chrono::steady_clock::now() - std::chrono::milliseconds(idle_milliseconds);
+
+            // How much time remains ?
+            int remaining_milliseconds = mTimer->remainingTime();
+
+            // Change the time - increase by (idle_minutes - mLastIdleMinutes)
+            int delta_idle_milliseconds = idle_milliseconds - mLastIdleMilliseconds;
+
+            // Paranoidal
+            if (delta_idle_milliseconds < 0)
+                delta_idle_milliseconds = 0;
+
+            mTimer->stop();
+            mTimer->start(std::chrono::milliseconds(remaining_milliseconds + delta_idle_milliseconds));
+
+            mLastIdleMilliseconds = idle_milliseconds;
+
+            // qDebug() << "Increase remaining time from " << remaining_milliseconds << " by " << delta_idle_milliseconds << ". "
+            //          << "New remaining time " << mTimer->remainingTime();
+        }
+        else
+            mLastIdleMilliseconds = 0;
+    }
+
     if (mTrayIcon)
     {
         if (mProgressTimer->isActive())
@@ -272,25 +305,6 @@ void MainWindow::onUpdateUI()
     }
 
     ui->mSkipButton->setVisible(mPostponeCount > 0);
-
-    if (mAppConfig.idle_timeout != 0 && mTimer->isActive())
-    {
-        int idle_minutes = get_idle_time();
-        if (idle_minutes >= mAppConfig.idle_timeout)
-        {
-            // Idle mode is active. Increase the timer interval
-            mIdleStart = std::chrono::steady_clock::now() - std::chrono::minutes(idle_minutes);
-
-            int remaining_minutes = mTimer->remainingTime() / 1000 / 60;
-
-            // Change the time
-            mTimer->stop();
-            mTimer->start(std::chrono::minutes(remaining_minutes + idle_minutes));
-
-            qDebug() << "Idle detected for " << idle_minutes << " minutes. "
-                     << "Remaining " << mTimer->remainingTime() / 1000 / 60 << " until the next break.";
-        }
-    }
 }
 
 void MainWindow::onLongBreakNotify()
@@ -304,6 +318,9 @@ void MainWindow::onLongBreakNotify()
 void MainWindow::onLongBreakStart()
 {
     qDebug() << "Long break starts for " << secondsToText(mAppConfig.longbreak_postpone_interval);
+
+    // Reset idle counter
+    mLastIdleMilliseconds = 0;
 
     ui->mPostponeButton->setText(tr("Postpone for ") + secondsToText(mAppConfig.longbreak_postpone_interval));
     showMe();

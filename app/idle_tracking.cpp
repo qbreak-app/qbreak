@@ -25,7 +25,7 @@ int get_idle_time()
 
         screen = DefaultScreen(display);
         XScreenSaverQueryInfo(display, RootWindow(display, screen), mit_info);
-        idle_time = (mit_info->idle) / 1000 / 60;
+        idle_time = (mit_info->idle);
         XFree(mit_info);
         XCloseDisplay(display);
 

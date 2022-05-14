@@ -40,6 +40,7 @@ private:
     app_settings::config mAppConfig;
     int mPostponeCount;
     std::chrono::steady_clock::time_point mIdleStart;
+    int mLastIdleMilliseconds;
 
     void init();
     void loadConfig();
