@@ -12,6 +12,8 @@
 #include <unistd.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+
+// This requires sudo apt install libxss-dev
 #include <X11/extensions/scrnsaver.h> // This can require libxss-dev to be installed
 #include <dlfcn.h>
 
@@ -92,6 +94,8 @@ int get_idle_time_wayland()
     // https://dev.gajim.org/gajim/gajim/-/commit/2e5d966f1d715f20f112dd9370f6ccd13fcaeca9
     // https://gitlab.freedesktop.org/wayland/wayland-protocols/-/merge_requests/29
     // https://github.com/NilsBrause/waylandpp
+    // Wayland protocol: idle-inhibit
+    // Interact with Wayland: look on waylandpp project
 
     return 0;
 }
