@@ -258,7 +258,7 @@ void MainWindow::onUpdateUI()
 {
     if (mAppConfig.idle_timeout != 0 && mTimer->isActive())
     {
-        int idle_milliseconds = get_idle_time();
+        int idle_milliseconds = get_idle_time_dynamically();
         if (idle_milliseconds >= mAppConfig.idle_timeout * 60 * 1000)
         {
             // Idle mode is active. Increase the timer interval

@@ -48,6 +48,6 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-unix:LIBS += -L/usr/X11R6/lib/ -lX11 -lXext -lXss
+unix:LIBS += -L/usr/X11R6/lib/ -lX11 -lXext -lXss -ldl
 
 
