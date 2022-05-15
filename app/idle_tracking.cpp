@@ -96,6 +96,8 @@ int get_idle_time_wayland()
     // https://github.com/NilsBrause/waylandpp
     // Wayland protocol: idle-inhibit
     // Interact with Wayland: look on waylandpp project
+    // For Gnome only: dbus-send --print-reply --dest=org.gnome.Mutter.IdleMonitor /org/gnome/Mutter/IdleMonitor/Core org.gnome.Mutter.IdleMonitor.GetIdletime
+    // For KDE: use kde idle protocol https://wayland.app/protocols/kde-idle
 
     return 0;
 }
