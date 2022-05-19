@@ -115,15 +115,11 @@ int get_idle_time_gnome()
 }
 
 #if defined(USE_WAYLAND)
-int get_idle_time_wayland()
+int get_idle_time_kde_wayland()
 {
     // Some ideas:
-    // https://dev.gajim.org/gajim/gajim/-/commit/2e5d966f1d715f20f112dd9370f6ccd13fcaeca9
     // https://gitlab.freedesktop.org/wayland/wayland-protocols/-/merge_requests/29
     // https://github.com/NilsBrause/waylandpp
-    // Wayland protocol: idle-inhibit
-    // Interact with Wayland: look on waylandpp project
-    // For Gnome only: dbus-send --print-reply --dest=org.gnome.Mutter.IdleMonitor /org/gnome/Mutter/IdleMonitor/Core org.gnome.Mutter.IdleMonitor.GetIdletime
     // For KDE: use kde idle protocol https://wayland.app/protocols/kde-idle
 
     return 0;
@@ -141,7 +137,7 @@ int get_idle_time_dynamically()
             return 0;
 
         if (strcmp(desktop_name, "KDE") == 0)
-            return get_idle_time_wayland();
+            return get_idle_time_kde_wayland();
         else
         if (strcmp(desktop_name, "GNOME") == 0)
             return get_idle_time_gnome();
