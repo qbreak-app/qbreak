@@ -1,6 +1,6 @@
 QT       += core gui svg multimedia
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets dbus
 
 CONFIG += c++17 lrelease embed_translations
 
@@ -41,7 +41,7 @@ RESOURCES = qbreak.qrc
 
 TRANSLATIONS = strings.ts strings_en.ts strings_ru.ts
 
-unix:!macx: DEFINES += TARGET_LINUX
+unix:!macx: DEFINES += TARGET_LINUX USE_WAYLAND
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

@@ -5,10 +5,16 @@
 
 #if defined(TARGET_LINUX)
 
+#include <QObject>
+#include <QDBusConnection>
+#include <QDBusReply>
+#include <QDBusInterface>
+
 // Thanks to https://stackoverflow.com/questions/222606/detecting-keyboard-mouse-activity-in-linux
 
 #include <time.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -16,7 +22,11 @@
 // This requires sudo apt install libxss-dev
 #include <X11/extensions/scrnsaver.h> // This can require libxss-dev to be installed
 #include <dlfcn.h>
+// #include <qmetatype.h>
+// #include <QDBusConnection>
 
+/*
+// Prototype from stackoverflow
 int get_idle_time()
 {
         time_t idle_time;
@@ -37,6 +47,7 @@ int get_idle_time()
 
         return idle_time;
 }
+*/
 
 int get_idle_time_x11()
 {
@@ -88,6 +99,22 @@ int get_idle_time_x11()
     return idle_time;
 }
 
+int get_idle_time_gnome()
+{
+    auto bus = QDBusConnection::sessionBus();
+    if (!bus.isConnected())
+        return 0;
+
+    QDBusInterface interface( "org.gnome.Mutter.IdleMonitor",
+                              "/org/gnome/Mutter/IdleMonitor/Core",
+                              "org.gnome.Mutter.IdleMonitor");
+
+    QDBusReply<int> reply = interface.call("GetIdletime");
+
+    return reply.isValid() ? reply.value() : 0;
+}
+
+#if defined(USE_WAYLAND)
 int get_idle_time_wayland()
 {
     // Some ideas:
@@ -101,19 +128,32 @@ int get_idle_time_wayland()
 
     return 0;
 }
+#endif
 
 int get_idle_time_dynamically()
 {
-    // Check if we run under X11
-    // const char* x11_display = std::getenv("DISPLAY");
-
-    // Check if we run under Wayland
-    // https://unix.stackexchange.com/questions/202891/how-to-know-whether-wayland-or-x11-is-being-used/371164#371164
+#if defined(USE_WAYLAND)
     const char* wl_display = std::getenv("WAYLAND_DISPLAY");
     if (wl_display)
-        return get_idle_time_wayland();
+    {
+        const char* desktop_name = std::getenv("XDG_DESKTOP_NAME");
+        if (!desktop_name)
+            return 0;
+
+        if (strcmp(desktop_name, "KDE") == 0)
+            return get_idle_time_wayland();
+        else
+        if (strcmp(desktop_name, "GNOME") == 0)
+            return get_idle_time_gnome();
+        else
+            return 0;
+    }
     else
         return get_idle_time_x11();
+#else
+    // Restrict to X11
+    return get_idle_time_x11();
+#endif
 }
 
 #endif
