@@ -50,8 +50,10 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 # X11 and wayland libraries
 unix:LIBS += -L/usr/X11R6/lib/          \
-             -L/usr/local/lib           \
-             -lX11 -lXext -lXss -ldl    \
-             -lwayland-client-unstable++ -lwayland-client-extra++ -lwayland-client++
+             -lX11 -lXext -lXss -ldl
+
+# When using wayland:
+# unix:LIBS +=  -L/usr/local/lib           \
+#               -lwayland-client-unstable++ -lwayland-client-extra++ -lwayland-client++
 
 

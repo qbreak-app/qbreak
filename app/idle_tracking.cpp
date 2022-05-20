@@ -133,7 +133,9 @@ public:
     kde_idle_detector()
     {}
     ~kde_idle_detector()
-    {}
+    {
+        stop();
+    }
 
     // Idle timeout is in msec
     void start(int idle_timeout)
@@ -145,11 +147,13 @@ public:
         registry.on_global() = [&] (uint32_t name, const std::string& interface, uint32_t version)
         {
           if (interface == wayland::seat_t::interface_name)
-            registry.bind(name, seat, version);
+            registry.bind(name, this->seat, version);
+          else
           if (interface == wayland::org_kde_kwin_idle_t::interface_name)
-              registry.bind(name, idle, version);
+              registry.bind(name, this->idle, version);
         };
         d.roundtrip();
+
 
         bool has_keyboard = false, has_pointer = false;
         seat.on_capabilities() = [&] (const wayland::seat_capability& capability)
@@ -199,7 +203,7 @@ kde_idle_detector kde_idle;
 int get_idle_time_kde_wayland()
 {
     // Ensure idle detector runs
-    kde_idle.start(1000);
+    kde_idle.start(1);
 
     return kde_idle.get_idle_time();
 }
@@ -210,9 +214,10 @@ int get_idle_time_dynamically()
 {
 #if defined(USE_WAYLAND)
     const char* wl_display = std::getenv("WAYLAND_DISPLAY");
-    if (wl_display)
+    const char* x11_display = std::getenv("DISPLAY");
+    if (wl_display && !x11_display)
     {
-        const char* desktop_name = std::getenv("XDG_DESKTOP_NAME");
+        const char* desktop_name = std::getenv("XDG_SESSION_DESKTOP");
         if (!desktop_name)
             return 0;
 
