@@ -212,10 +212,11 @@ int get_idle_time_kde_wayland()
 
 int get_idle_time_dynamically()
 {
-#if defined(USE_WAYLAND)
     const char* wl_display = std::getenv("WAYLAND_DISPLAY");
-    const char* x11_display = std::getenv("DISPLAY");
-    if (wl_display && !x11_display)
+    // const char* x11_display = std::getenv("DISPLAY");
+
+#if defined(USE_WAYLAND)
+    if (wl_display)
     {
         const char* desktop_name = std::getenv("XDG_SESSION_DESKTOP");
         if (!desktop_name)
@@ -233,6 +234,9 @@ int get_idle_time_dynamically()
         return get_idle_time_x11();
 #else
     // Restrict to X11
+    if (wl_display)
+        return 0;
+
     return get_idle_time_x11();
 #endif
 }

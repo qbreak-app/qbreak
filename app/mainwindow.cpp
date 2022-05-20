@@ -254,6 +254,12 @@ void MainWindow::createTrayIcon()
     mTrayIcon->show();
 }
 
+static int msec2min(int msec)
+{
+    float min_f = float(msec) / 1000 / 60;
+    return (int)(min_f + 0.5f);
+}
+
 void MainWindow::onUpdateUI()
 {
     if (mAppConfig.idle_timeout != 0 && mTimer->isActive())
@@ -279,8 +285,8 @@ void MainWindow::onUpdateUI()
 
             mLastIdleMilliseconds = idle_milliseconds;
 
-            // qDebug() << "Increase remaining time from " << remaining_milliseconds << " by " << delta_idle_milliseconds << ". "
-            //          << "New remaining time " << mTimer->remainingTime();
+            qDebug() << "Increase remaining time from " << remaining_milliseconds << " by " << delta_idle_milliseconds << ". "
+                      << "New remaining time " << mTimer->remainingTime() << ". Idle in milliseconds " << idle_milliseconds;
         }
         else
             mLastIdleMilliseconds = 0;
@@ -297,10 +303,10 @@ void MainWindow::onUpdateUI()
         if (mTimer->isActive())
         {
             auto remaining_milliseconds = mTimer->remainingTime();
-            if (remaining_milliseconds == 0)
+            if (remaining_milliseconds < 60000)
                 mTrayIcon->setToolTip(tr("Less than a minute left until the next break."));
             else
-                mTrayIcon->setToolTip(tr("There are %1 minutes left until the next break.").arg(remaining_milliseconds / 1000 / 60));
+                mTrayIcon->setToolTip(tr("There are %1 minutes left until the next break.").arg(msec2min(remaining_milliseconds)));
         }
     }
 
