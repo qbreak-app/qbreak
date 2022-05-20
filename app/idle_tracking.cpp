@@ -115,15 +115,95 @@ int get_idle_time_gnome()
 }
 
 #if defined(USE_WAYLAND)
+#include <wayland-client-protocol-unstable.hpp>
+
+class kde_idle_detector
+{
+private:
+    wayland::seat_t seat;
+    wayland::display_t d;
+    wayland::org_kde_kwin_idle_t idle;
+    wayland::org_kde_kwin_idle_timeout_t idle_timer;
+
+    uint64_t idle_start = 0;
+    uint64_t idle_finish = 0;
+    bool active = false;
+
+public:
+    kde_idle_detector()
+    {}
+    ~kde_idle_detector()
+    {}
+
+    // Idle timeout is in msec
+    void start(int idle_timeout)
+    {
+        if (active)
+            return;
+
+        auto registry = d.get_registry();
+        registry.on_global() = [&] (uint32_t name, const std::string& interface, uint32_t version)
+        {
+          if (interface == wayland::seat_t::interface_name)
+            registry.bind(name, seat, version);
+          if (interface == wayland::org_kde_kwin_idle_t::interface_name)
+              registry.bind(name, idle, version);
+        };
+        d.roundtrip();
+
+        bool has_keyboard = false, has_pointer = false;
+        seat.on_capabilities() = [&] (const wayland::seat_capability& capability)
+        {
+          has_keyboard = capability & wayland::seat_capability::keyboard;
+          has_pointer = capability & wayland::seat_capability::pointer;
+        };
+        d.roundtrip();
+
+        idle_timer = idle.get_idle_timeout(seat, idle_timeout);
+        idle_timer.on_idle() = [&]()
+        {
+            idle_start = ::time(nullptr);
+        };
+
+        idle_timer.on_resumed() = [&]()
+        {
+            idle_finish = ::time(nullptr);
+        };
+
+        active = true;
+    }
+
+    void stop()
+    {
+        if (!active)
+            return;
+
+        active = false;
+        idle_timer.release();
+        seat.release();
+    }
+
+    // Return idle time in microseconds
+    int get_idle_time() const
+    {
+        if (idle_start > idle_finish)
+        {
+            return (::time(nullptr) - idle_start) * 1000;
+        }
+
+        return 0;
+    }
+};
+
+kde_idle_detector kde_idle;
 int get_idle_time_kde_wayland()
 {
-    // Some ideas:
-    // https://gitlab.freedesktop.org/wayland/wayland-protocols/-/merge_requests/29
-    // https://github.com/NilsBrause/waylandpp
-    // For KDE: use kde idle protocol https://wayland.app/protocols/kde-idle
+    // Ensure idle detector runs
+    kde_idle.start(1000);
 
-    return 0;
+    return kde_idle.get_idle_time();
 }
+
 #endif
 
 int get_idle_time_dynamically()

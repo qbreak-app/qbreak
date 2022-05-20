@@ -41,13 +41,17 @@ RESOURCES = qbreak.qrc
 
 TRANSLATIONS = strings.ts strings_en.ts strings_ru.ts
 
-unix:!macx: DEFINES += TARGET_LINUX USE_WAYLAND
+unix:!macx: DEFINES += TARGET_LINUX # USE_WAYLAND
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-unix:LIBS += -L/usr/X11R6/lib/ -lX11 -lXext -lXss -ldl
+# X11 and wayland libraries
+unix:LIBS += -L/usr/X11R6/lib/          \
+             -L/usr/local/lib           \
+             -lX11 -lXext -lXss -ldl    \
+             -lwayland-client-unstable++ -lwayland-client-extra++ -lwayland-client++
 
 
