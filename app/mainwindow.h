@@ -67,5 +67,7 @@ public slots:
     void onSettings();
     void onAbout();
     void onExit();
+
+    void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
 };
 #endif // MAINWINDOW_H

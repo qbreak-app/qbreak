@@ -252,6 +252,8 @@ void MainWindow::createTrayIcon()
     mTrayIcon->setIcon(getTrayIcon());
     mTrayIcon->setToolTip(AppName);
     mTrayIcon->show();
+    connect(mTrayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
+            this, SLOT(onTrayIconActivated(QSystemTrayIcon::ActivationReason)));
 }
 
 static int msec2min(int msec)
@@ -461,4 +463,21 @@ void MainWindow::onExit()
 {
     this->close();
     QApplication::exit();
+}
+
+void MainWindow::onTrayIconActivated(QSystemTrayIcon::ActivationReason reason)
+{
+    switch(reason)
+    {
+    // Show context menu on single click
+    case QSystemTrayIcon::Trigger:
+        mTrayIcon->contextMenu()->popup(QCursor::pos());
+        break;
+
+    case QSystemTrayIcon::Unknown:
+    case QSystemTrayIcon::Context:
+    case QSystemTrayIcon::DoubleClick:
+    case QSystemTrayIcon::MiddleClick:
+        break;
+    }
 }
