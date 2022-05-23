@@ -6,6 +6,8 @@
 #include <QSystemTrayIcon>
 
 #include <chrono>
+#include <optional>
+
 #include "settings.h"
 #include "settingsdialog.h"
 
@@ -39,7 +41,13 @@ private:
     std::chrono::steady_clock::time_point mBreakStartTime;
     app_settings::config mAppConfig;
     int mPostponeCount;
-    std::chrono::steady_clock::time_point mIdleStart;
+
+    // Time when idle was started
+    std::optional<std::chrono::steady_clock::time_point> mIdleStart;
+
+    // Time remaining in main timer
+    int mIdleRemaining;
+
     int mLastIdleMilliseconds;
 
     void init();

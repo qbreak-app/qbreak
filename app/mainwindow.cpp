@@ -264,34 +264,41 @@ static int msec2min(int msec)
 
 void MainWindow::onUpdateUI()
 {
-    if (mAppConfig.idle_timeout != 0 && mTimer->isActive())
+    if (mAppConfig.idle_timeout != 0 && (mTimer->isActive() || mIdleStart))
     {
         int idle_milliseconds = get_idle_time_dynamically();
         if (idle_milliseconds >= mAppConfig.idle_timeout * 60 * 1000)
         {
-            // Idle mode is active. Increase the timer interval
-            mIdleStart = std::chrono::steady_clock::now() - std::chrono::milliseconds(idle_milliseconds);
+            if (!mIdleStart)
+            {
+                // Start idle mode. Save idle start time
+                mIdleStart = std::chrono::steady_clock::now() - std::chrono::milliseconds(idle_milliseconds);
+                mIdleRemaining = mTimer->remainingTime() + idle_milliseconds;
 
-            // How much time remains ?
-            int remaining_milliseconds = mTimer->remainingTime();
-
-            // Change the time - increase by (idle_minutes - mLastIdleMinutes)
-            int delta_idle_milliseconds = idle_milliseconds - mLastIdleMilliseconds;
-
-            // Paranoidal
-            if (delta_idle_milliseconds < 0)
-                delta_idle_milliseconds = 0;
-
-            mTimer->stop();
-            mTimer->start(std::chrono::milliseconds(remaining_milliseconds + delta_idle_milliseconds));
-
-            mLastIdleMilliseconds = idle_milliseconds;
-
-            qDebug() << "Increase remaining time from " << remaining_milliseconds << " by " << delta_idle_milliseconds << ". "
-                      << "New remaining time " << mTimer->remainingTime() << ". Idle in milliseconds " << idle_milliseconds;
+                // Stop counting
+                mTimer->stop();
+            }
+            else
+            {
+                // Do nothing here - main timer is stopped, idle time & timer remaining duration are recorded already
+                // How much time remains ?
+            }
+       }
+       else
+       {
+            if (mIdleStart)
+            {
+                // Idle interval ended
+                mIdleStart.reset();
+                mTimer->setInterval(mIdleRemaining);
+                mTimer->setSingleShot(true);
+                mTimer->start();
+            }
+            else
+            {
+                // Do nothing here - timer is running already
+            }
         }
-        else
-            mLastIdleMilliseconds = 0;
     }
 
     if (mTrayIcon)
