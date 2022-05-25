@@ -207,7 +207,7 @@ void MainWindow::showMe()
         {
             windowHandle()->setScreen(screen);
             setGeometry(screen->geometry());
-            qDebug() << "Window moved to screen " << screen->name() + " / " + screen->model() + " " + screen->manufacturer();
+            // qDebug() << "Window moved to screen " << screen->name() + " / " + screen->model() + " " + screen->manufacturer();
         }
     }
     showFullScreen();
@@ -332,7 +332,7 @@ void MainWindow::onLongBreakNotify()
 
 void MainWindow::onLongBreakStart()
 {
-    qDebug() << "Long break starts for " << secondsToText(mAppConfig.longbreak_postpone_interval);
+    // qDebug() << "Long break starts for " << secondsToText(mAppConfig.longbreak_postpone_interval);
 
     // Reset idle counter
     mLastIdleMilliseconds = 0;
@@ -351,7 +351,7 @@ void MainWindow::onLongBreakStart()
 
 void MainWindow::onLongBreakEnd()
 {
-    qDebug() << "Long break ends.";
+    // qDebug() << "Long break ends.";
 
     // Reset postpone counter
     mPostponeCount = 0;
@@ -387,7 +387,7 @@ void MainWindow::onLongBreakEnd()
 
 void MainWindow::onLongBreakPostpone()
 {
-    qDebug() << "Long break postponed.";
+    // qDebug() << "Long break postponed.";
     mPostponeCount++;
 
     hideMe();
