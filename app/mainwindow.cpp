@@ -273,10 +273,16 @@ void MainWindow::onUpdateUI()
             {
                 // Start idle mode. Save idle start time
                 mIdleStart = std::chrono::steady_clock::now() - std::chrono::milliseconds(idle_milliseconds);
-                mIdleRemaining = mTimer->remainingTime() + idle_milliseconds;
+                if (mTimer->isActive())
+                {
+                    // Save how much time was remaininig when idle was detected + add idle length
+                    // Later timer will restart with this interval time
+                    mIdleRemaining = mTimer->remainingTime() + idle_milliseconds;
 
-                // Stop counting
-                mTimer->stop();
+                    // Stop counting
+                    mTimer->stop();
+                    mNotifyTimer->stop();
+                }
             }
             else
             {
@@ -290,9 +296,8 @@ void MainWindow::onUpdateUI()
             {
                 // Idle interval ended
                 mIdleStart.reset();
-                mTimer->setInterval(mIdleRemaining);
-                mTimer->setSingleShot(true);
-                mTimer->start();
+                mTimer->start(mIdleRemaining);
+                mNotifyTimer->start(std::max(1, mIdleRemaining - 30 * 1000));
             }
             else
             {
@@ -334,7 +339,11 @@ void MainWindow::onLongBreakStart()
 {
     // qDebug() << "Long break starts for " << secondsToText(mAppConfig.longbreak_postpone_interval);
 
+    mTimer->stop();
+    mNotifyTimer->stop();
+
     // Reset idle counter
+
     mLastIdleMilliseconds = 0;
 
     ui->mPostponeButton->setText(tr("Postpone for ") + secondsToText(mAppConfig.longbreak_postpone_interval));
@@ -429,6 +438,9 @@ void MainWindow::onProgress()
 
 void MainWindow::onNextBreak()
 {
+    mIdleRemaining = 0;
+    mIdleStart.reset();
+
     mTimer->stop();
     mNotifyTimer->stop();
 
