@@ -271,8 +271,14 @@ void MainWindow::onUpdateUI()
         {
             if (!mIdleStart)
             {
+                // Idle could start before timer start
+                // Check and shrink the found idle interval if needed
+                auto proposed_idle_start = std::chrono::steady_clock::now() - std::chrono::milliseconds(idle_milliseconds);
+                auto timer_start = std::chrono::steady_clock::now() - (std::chrono::milliseconds(mTimer->interval() - mTimer->remainingTime()));
+                mIdleStart = std::max(timer_start, proposed_idle_start);
+
                 // Start idle mode. Save idle start time
-                mIdleStart = std::chrono::steady_clock::now() - std::chrono::milliseconds(idle_milliseconds);
+                // mIdleStart = std::chrono::steady_clock::now() - std::chrono::milliseconds(idle_milliseconds);
                 if (mTimer->isActive())
                 {
                     // Save how much time was remaininig when idle was detected + add idle length
