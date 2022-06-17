@@ -1,7 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>assets/images/app_icon_dark.png</file>
-        <file>assets/images/app_icon_light.png</file>
         <file>assets/misc/qbreak.desktop</file>
         <file>assets/images/coffee_cup/icon_16x16.png</file>
         <file>assets/images/coffee_cup/icon_24x24.png</file>

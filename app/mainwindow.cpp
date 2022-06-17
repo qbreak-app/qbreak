@@ -273,7 +273,8 @@ void MainWindow::onUpdateUI()
             {
                 // Idle could start before timer start
                 // Check and shrink the found idle interval if needed
-                auto proposed_idle_start = std::chrono::steady_clock::now() - std::chrono::milliseconds(idle_milliseconds);
+                auto current_time = std::chrono::steady_clock::now();
+                auto proposed_idle_start = current_time - std::chrono::milliseconds(idle_milliseconds);
                 auto timer_start = std::chrono::steady_clock::now() - (std::chrono::milliseconds(mTimer->interval() - mTimer->remainingTime()));
                 mIdleStart = std::max(timer_start, proposed_idle_start);
 
@@ -281,6 +282,9 @@ void MainWindow::onUpdateUI()
                 // mIdleStart = std::chrono::steady_clock::now() - std::chrono::milliseconds(idle_milliseconds);
                 if (mTimer->isActive())
                 {
+                    // Correct duration of idle
+                    idle_milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - mIdleStart.value()).count();
+
                     // Save how much time was remaininig when idle was detected + add idle length
                     // Later timer will restart with this interval time
                     mIdleRemaining = mTimer->remainingTime() + idle_milliseconds;
@@ -288,6 +292,9 @@ void MainWindow::onUpdateUI()
                     // Stop counting
                     mTimer->stop();
                     mNotifyTimer->stop();
+
+                    // Update "Remaining ..." label
+                    mTrayIcon->setToolTip(tr("There are %1 minutes left until the next break.").arg(msec2min(mIdleRemaining)));
                 }
             }
             else
