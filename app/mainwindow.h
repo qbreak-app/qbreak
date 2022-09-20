@@ -11,6 +11,15 @@
 #include "settings.h"
 #include "settingsdialog.h"
 
+// Possible app states
+enum class AppState
+{
+    None,
+    Counting,
+    Idle,
+    Break
+};
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -31,24 +40,27 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    QTimer* mTimer;
+    QTimer* mMainTimer;
     QTimer* mNotifyTimer;
-    QTimer* mShowNotifyTimer;
     QTimer* mUpdateUITimer;
     QTimer* mProgressTimer;
     QSystemTrayIcon* mTrayIcon;
     SettingsDialog* mSettingsDialog;
+
     std::chrono::steady_clock::time_point mBreakStartTime;
+
+    // How much seconds remains for main break
+    int mWorkInterval = -1;
+
     app_settings::config mAppConfig;
     int mPostponeCount;
 
     // Time when idle was started
     std::optional<std::chrono::steady_clock::time_point> mIdleStart;
 
-    // Time remaining in main timer
-    int mIdleRemaining;
-
     int mLastIdleMilliseconds;
+
+    AppState mState = AppState::None;
 
     void init();
     void loadConfig();
@@ -62,6 +74,9 @@ private:
 
     QIcon getAppIcon();
     QIcon getTrayIcon();
+
+    // Function to switch state
+    void shiftTo(AppState state);
 
 public slots:
     void onUpdateUI();

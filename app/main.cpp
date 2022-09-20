@@ -39,7 +39,12 @@ int main(int argc, char *argv[])
     parser.process(app);
 
     // Put itself into app menu
-    appmenu::install(QFileInfo(argv[0]).absoluteFilePath().toStdString());
+    auto exe_path = QFileInfo(QCoreApplication::arguments().front()).absoluteFilePath();
+    const char* appimage = std::getenv("APPIMAGE");
+    if (appimage != nullptr)
+        exe_path = appimage;
+
+    appmenu::install(exe_path.toStdString());
 
     // Main window is full screen window, so start with tray icon only
     MainWindow w;

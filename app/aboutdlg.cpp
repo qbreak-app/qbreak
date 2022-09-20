@@ -13,6 +13,9 @@ AboutDlg::AboutDlg(QWidget *parent) :
             .arg(QBREAK_VERSION_MAJOR)
             .arg(QBREAK_VERSION_MINOR)
             .arg(QBREAK_VERSION_SUFFIX);
+#if defined(DEBUG)
+    version_text += ". Debug build.";
+#endif
     ui->mAppVersionLabel->setText(version_text);
 }
 

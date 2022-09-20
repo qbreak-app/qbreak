@@ -98,8 +98,21 @@ static fs::path appmenu_install_dir()
 
 void appmenu::install(const std::string& path_to_me)
 {
+    auto path_to_desktop = appmenu_install_dir() / QBREAK_DESKTOP_NAME;
+
+    // Check if app is installed already.
+    // The code below checks for path to app; as this app is distributed as .AppImage with version numbers - every new version will trigger desktop file rewriting
+    std::ifstream ifs(path_to_desktop);
+    std::string content((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+    if (content.find(path_to_me) != std::string::npos)
+        return;
+
+    // Remove old one
+    std::string uninstall_cmd = "/usr/bin/xdg-desktop-menu uninstall --novendor " + path_to_desktop.string();
+    system(uninstall_cmd.c_str());
+
     // Put .desktop file to ~/.config/autostart
-    std::ofstream ofs(appmenu_install_dir() / QBREAK_DESKTOP_NAME);
+    std::ofstream ofs(path_to_desktop);
     if (ofs.is_open())
     {
         ofs << fixup_desktop_file(read_desktop_file(), path_to_me);
@@ -125,6 +138,9 @@ void appmenu::install(const std::string& path_to_me)
             }
         }
     }
+
+    std::string install_cmd = "/usr/bin/xdg-desktop-menu install --novendor " + path_to_desktop.string();
+    system(install_cmd.c_str());
 }
 
 void appmenu::uninstall()
