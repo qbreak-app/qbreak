@@ -40,16 +40,16 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    QTimer* mMainTimer;
-    QTimer* mNotifyTimer;
-    QTimer* mUpdateUITimer;
-    QTimer* mProgressTimer;
+    QTimer* mBreakStartTimer;           // Main timer - triggers when break occurs
+    QTimer* mBreakNotifyTimer;          // Timer to show notification from system tray
+    QTimer* mUpdateUITimer;             // Update UI timer - triggers every minute to update UI and checks for idle
+    QTimer* mProgressTimer;             // Break progress timer
     QSystemTrayIcon* mTrayIcon;
     SettingsDialog* mSettingsDialog;
 
     std::chrono::steady_clock::time_point mBreakStartTime;
 
-    // How much seconds remains for main break
+    // How much milliseconds remains for main break
     int mWorkInterval = -1;
 
     app_settings::config mAppConfig;
@@ -84,6 +84,8 @@ public slots:
     void onLongBreakStart();
     void onLongBreakPostpone();
     void onLongBreakEnd();
+    void onIdleStart();
+    void onIdleEnd();
 
     void onProgress();
     void onNextBreak();

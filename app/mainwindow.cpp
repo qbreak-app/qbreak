@@ -83,16 +83,16 @@ void MainWindow::init()
     mLastIdleMilliseconds = 0;
 
     // Timer to start break
-    mTimer = new QTimer(this);
-    mTimer->setTimerType(Qt::TimerType::CoarseTimer);
-    mTimer->setSingleShot(true);
-    connect(mTimer, SIGNAL(timeout()), this, SLOT(onLongBreakStart()));
+    mBreakStartTimer = new QTimer(this);
+    mBreakStartTimer->setTimerType(Qt::TimerType::CoarseTimer);
+    mBreakStartTimer->setSingleShot(true);
+    connect(mBreakStartTimer, SIGNAL(timeout()), this, SLOT(onLongBreakStart()));
 
     // Timer to run notification about upcoming break
-    mNotifyTimer = new QTimer(this);
-    mNotifyTimer->setTimerType(Qt::TimerType::CoarseTimer);
-    mNotifyTimer->setSingleShot(true);
-    connect(mNotifyTimer, SIGNAL(timeout()), this, SLOT(onLongBreakNotify()));
+    mBreakNotifyTimer = new QTimer(this);
+    mBreakNotifyTimer->setTimerType(Qt::TimerType::CoarseTimer);
+    mBreakNotifyTimer->setSingleShot(true);
+    connect(mBreakNotifyTimer, SIGNAL(timeout()), this, SLOT(onLongBreakNotify()));
 
     // Just update UI once per minute
     mUpdateUITimer = new QTimer(this);
@@ -114,8 +114,7 @@ void MainWindow::init()
     // Use the latest config
     applyConfig();
 
-    // Refresh UI
-    onUpdateUI();
+    shiftTo(AppState::Counting);
 }
 
 void MainWindow::loadConfig()
@@ -126,17 +125,17 @@ void MainWindow::loadConfig()
 
 void MainWindow::applyConfig()
 {
-    if (mTimer)
+    if (mBreakStartTimer)
     {
-        if (mTimer->interval() != mAppConfig.longbreak_interval)
+        if (mBreakStartTimer->interval() != mAppConfig.longbreak_interval)
         {
-            mTimer->stop();
-            mTimer->setInterval(std::chrono::seconds(mAppConfig.longbreak_interval));
-            mTimer->start();
+            mBreakStartTimer->stop();
+            mBreakStartTimer->setInterval(std::chrono::seconds(mAppConfig.longbreak_interval));
+            mBreakStartTimer->start();
 
-            mNotifyTimer->stop();
-            mNotifyTimer->setInterval(std::chrono::seconds(mAppConfig.longbreak_interval - 30));
-            mNotifyTimer->start();
+            mBreakNotifyTimer->stop();
+            mBreakNotifyTimer->setInterval(std::chrono::seconds(mAppConfig.longbreak_interval - 30));
+            mBreakNotifyTimer->start();
         }
     }
 
@@ -210,7 +209,10 @@ void MainWindow::showMe()
             // qDebug() << "Window moved to screen " << screen->name() + " / " + screen->model() + " " + screen->manufacturer();
         }
     }
+
+#if !defined(DEBUG)
     showFullScreen();
+#endif
 }
 
 void MainWindow::hideMe()
@@ -262,79 +264,90 @@ static int msec2min(int msec)
     return (int)(min_f + 0.5f);
 }
 
-void MainWindow::onUpdateUI()
+void MainWindow::shiftTo(AppState newState)
 {
-    if (mAppConfig.idle_timeout != 0 && (mTimer->isActive() || mIdleStart))
+    if (newState == mState)
+        return;
+
+    switch (newState)
     {
-        int idle_milliseconds = get_idle_time_dynamically();
-        if (idle_milliseconds >= mAppConfig.idle_timeout * 60 * 1000)
-        {
-            if (!mIdleStart)
-            {
-                // Idle could start before timer start
-                // Check and shrink the found idle interval if needed
-                auto current_time = std::chrono::steady_clock::now();
-                auto proposed_idle_start = current_time - std::chrono::milliseconds(idle_milliseconds);
-                auto timer_start = std::chrono::steady_clock::now() - (std::chrono::milliseconds(mTimer->interval() - mTimer->remainingTime()));
-                mIdleStart = std::max(timer_start, proposed_idle_start);
+    case AppState::None:
+        // Do nothing, app is not started
+        break;
 
-                // Start idle mode. Save idle start time
-                // mIdleStart = std::chrono::steady_clock::now() - std::chrono::milliseconds(idle_milliseconds);
-                if (mTimer->isActive())
-                {
-                    // Correct duration of idle
-                    idle_milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - mIdleStart.value()).count();
+    case AppState::Idle:
+        onIdleStart();
+        break;
 
-                    // Save how much time was remaininig when idle was detected + add idle length
-                    // Later timer will restart with this interval time
-                    mIdleRemaining = mTimer->remainingTime() + idle_milliseconds;
+    case AppState::Break:
+        // Break is active
+        onLongBreakStart();
+        break;
 
-                    // Stop counting
-                    mTimer->stop();
-                    mNotifyTimer->stop();
-
-                    // Update "Remaining ..." label
-                    mTrayIcon->setToolTip(tr("There are %1 minutes left until the next break.").arg(msec2min(mIdleRemaining)));
-                }
-            }
-            else
-            {
-                // Do nothing here - main timer is stopped, idle time & timer remaining duration are recorded already
-                // How much time remains ?
-            }
-       }
-       else
-       {
-            if (mIdleStart)
-            {
-                // Idle interval ended
-                mIdleStart.reset();
-                mTimer->start(mIdleRemaining);
-                mNotifyTimer->start(std::max(1, mIdleRemaining - 30 * 1000));
-            }
-            else
-            {
-                // Do nothing here - timer is running already
-            }
-        }
+    case AppState::Counting:
+        // Working, break is closing
+        if (mState == AppState::Break)
+            onLongBreakEnd();
+        else
+        if (mState == AppState::Idle)
+            onIdleEnd();
+        break;
     }
 
-    if (mTrayIcon)
+    mState = newState;
+    onUpdateUI();
+}
+
+void MainWindow::onUpdateUI()
+{
+    int idle_milliseconds = 0;
+    switch (mState)
     {
-        if (mProgressTimer->isActive())
+    case AppState::None:
+        // Do nothing, app is not started
+        break;
+
+    case AppState::Idle:
+        // Detected idle, don't count this time as working
+        // But check - maybe idle is over
+        idle_milliseconds = get_idle_time_dynamically();
+        if (idle_milliseconds < mAppConfig.idle_timeout * 60 * 1000)
         {
-            // Break is in effect now
-            mTrayIcon->setToolTip(QString());
+            shiftTo(AppState::Counting);
+            return;
         }
-        else
-        if (mTimer->isActive())
+        break;
+
+    case AppState::Break:
+        // Break is active
+        if (mTrayIcon)
+            mTrayIcon->setToolTip(QString());
+        break;
+
+    case AppState::Counting:
+        // Working, break is closing
+        // Check maybe it is idle ?
+        if (!mIdleStart && mAppConfig.idle_timeout)
         {
-            auto remaining_milliseconds = mTimer->remainingTime();
+            idle_milliseconds = get_idle_time_dynamically();
+            if (idle_milliseconds >= mAppConfig.idle_timeout * 60 * 1000)
+            {
+                shiftTo(AppState::Idle);
+                return;
+            }
+        }
+
+        // Update tray icon
+        if (mTrayIcon)
+        {
+            auto remaining_milliseconds = mBreakStartTimer->remainingTime();
             if (remaining_milliseconds < 60000)
                 mTrayIcon->setToolTip(tr("Less than a minute left until the next break."));
             else
                 mTrayIcon->setToolTip(tr("There are %1 minutes left until the next break.").arg(msec2min(remaining_milliseconds)));
         }
+
+        break;
     }
 
     ui->mSkipButton->setVisible(mPostponeCount > 0);
@@ -350,18 +363,19 @@ void MainWindow::onLongBreakNotify()
 
 void MainWindow::onLongBreakStart()
 {
-    // qDebug() << "Long break starts for " << secondsToText(mAppConfig.longbreak_postpone_interval);
-
-    mTimer->stop();
-    mNotifyTimer->stop();
+    mBreakStartTimer->stop();
+    mBreakNotifyTimer->stop();
 
     // Reset idle counter
+    mIdleStart.reset();
 
-    mLastIdleMilliseconds = 0;
-
+    // Show the button "Postpone"
     ui->mPostponeButton->setText(tr("Postpone for ") + secondsToText(mAppConfig.longbreak_postpone_interval));
+
+    // Show the screen
     showMe();
 
+    // Save start time
     mBreakStartTime = std::chrono::steady_clock::now();
 
     // Start progress bar
@@ -387,10 +401,10 @@ void MainWindow::onLongBreakEnd()
     mProgressTimer->stop();
 
     // Start new timer
-    mTimer->stop();
-    mTimer->start(std::chrono::seconds(mAppConfig.longbreak_interval));
-    mNotifyTimer->stop();
-    mNotifyTimer->start(std::chrono::seconds(mAppConfig.longbreak_interval - 30));
+    mBreakStartTimer->stop();
+    mBreakStartTimer->start(std::chrono::seconds(mAppConfig.longbreak_interval));
+    mBreakNotifyTimer->stop();
+    mBreakNotifyTimer->start(std::chrono::seconds(mAppConfig.longbreak_interval - 30));
 
     // Refresh UI
     onUpdateUI();
@@ -418,10 +432,10 @@ void MainWindow::onLongBreakPostpone()
     ui->mProgressBar->setValue(0);
 
     // Start timer again
-    mTimer->stop();
-    mTimer->start(std::chrono::seconds(mAppConfig.longbreak_postpone_interval));
-    mNotifyTimer->stop();
-    mNotifyTimer->start(std::chrono::seconds(mAppConfig.longbreak_postpone_interval - 30));
+    mBreakStartTimer->stop();
+    mBreakStartTimer->start(std::chrono::seconds(mAppConfig.longbreak_postpone_interval));
+    mBreakNotifyTimer->stop();
+    mBreakNotifyTimer->start(std::chrono::seconds(mAppConfig.longbreak_postpone_interval - 30));
 
     // Refresh UI
     onUpdateUI();
@@ -443,7 +457,7 @@ void MainWindow::onProgress()
     if (percents > 100)
     {
         mProgressTimer->stop();
-        onLongBreakEnd();
+        shiftTo(AppState::Counting);
     }
     else
         showMe();
@@ -451,13 +465,40 @@ void MainWindow::onProgress()
 
 void MainWindow::onNextBreak()
 {
-    mIdleRemaining = 0;
+    shiftTo(AppState::Break);
+}
+
+void MainWindow::onIdleStart()
+{
+    if (mState != AppState::Counting)
+        return;
+
+    // Detected idle
+    // Timestamp when idle started
+    mIdleStart = std::chrono::steady_clock::now();
+
+    // How much working time remains
+    mWorkInterval = mBreakStartTimer->remainingTime();
+
+    // Stop main & notify timers
+    mBreakStartTimer->stop();
+    mBreakNotifyTimer->stop();
+}
+
+void MainWindow::onIdleEnd()
+{
+    if (mState != AppState::Idle)
+        return;
+
     mIdleStart.reset();
 
-    mTimer->stop();
-    mNotifyTimer->stop();
+    // Update timer(s) duration
+    mBreakStartTimer->setInterval(mWorkInterval);
+    if (mWorkInterval > INTERVAL_NOTIFICATION)
+        mBreakNotifyTimer->setInterval(mWorkInterval - INTERVAL_NOTIFICATION);
 
-    onLongBreakStart();
+    mWorkInterval = mAppConfig.longbreak_interval * 1000;
+    shiftTo(AppState::Counting);
 }
 
 void MainWindow::onSettings()
