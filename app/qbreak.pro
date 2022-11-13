@@ -1,5 +1,7 @@
 QT       += core gui svg multimedia
 
+CONFIG += debug_and_release
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets dbus
 
 CONFIG += c++17 lrelease embed_translations

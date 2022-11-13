@@ -5,6 +5,7 @@ import platform
 import os
 import shutil
 import glob
+import sys
 from pathlib import Path
 import multiprocessing
 import build_utils
@@ -48,8 +49,13 @@ if platform.system() == 'Linux':
         print(f'qmake call failed with code {retcode}')
         exit(retcode)
 
+    # Check the requested type of build - debug or release
+    build_type = 'release'
+    if len(sys.argv) == 2:
+        build_type = sys.argv[1]
+
     print('Build...')
-    retcode = os.system('make -j4')
+    retcode = os.system(f'make {build_type} -j4')
     if retcode != 0:
         print(f'make call failed with code {retcode}')
         exit(retcode)
