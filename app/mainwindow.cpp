@@ -169,7 +169,7 @@ void MainWindow::test_1()
     mAppConfig.verbose = true;
     applyConfig();
     onUpdateUI();
-    onLongBreakStart();
+    shiftTo(AppState::Break);
 }
 
 void MainWindow::test_2()
@@ -493,9 +493,12 @@ void MainWindow::onIdleEnd()
     mIdleStart.reset();
 
     // Update timer(s) duration
-    mBreakStartTimer->setInterval(mWorkInterval);
-    if (mWorkInterval > INTERVAL_NOTIFICATION)
-        mBreakNotifyTimer->setInterval(mWorkInterval - INTERVAL_NOTIFICATION);
+    if (mWorkInterval >= 0)
+    {
+        mBreakStartTimer->setInterval(mWorkInterval);
+        if (mWorkInterval > INTERVAL_NOTIFICATION)
+            mBreakNotifyTimer->setInterval(mWorkInterval - INTERVAL_NOTIFICATION);
+    }
 
     mWorkInterval = mAppConfig.longbreak_interval * 1000;
     shiftTo(AppState::Counting);
