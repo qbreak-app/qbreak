@@ -86,7 +86,7 @@ void MainWindow::init()
     mBreakStartTimer = new QTimer(this);
     mBreakStartTimer->setTimerType(Qt::TimerType::CoarseTimer);
     mBreakStartTimer->setSingleShot(true);
-    connect(mBreakStartTimer, SIGNAL(timeout()), this, SLOT(onLongBreakStart()));
+    connect(mBreakStartTimer, &QTimer::timeout, this, [this](){shiftTo(AppState::Break);});
 
     // Timer to run notification about upcoming break
     mBreakNotifyTimer = new QTimer(this);
@@ -109,7 +109,7 @@ void MainWindow::init()
     connect(mProgressTimer, SIGNAL(timeout()), this, SLOT(onProgress()));
 
     connect(ui->mPostponeButton, SIGNAL(clicked()), this, SLOT(onLongBreakPostpone()));
-    connect(ui->mSkipButton, SIGNAL(clicked()), this, SLOT(onLongBreakEnd()));
+    connect(ui->mSkipButton, &QPushButton::clicked, this, [this](){shiftTo(AppState::Counting);});
 
     // Use the latest config
     applyConfig();
@@ -264,10 +264,29 @@ static int msec2min(int msec)
     return (int)(min_f + 0.5f);
 }
 
+QString state2str(AppState state)
+{
+    switch (state)
+    {
+    case AppState::None:
+        return "None";
+    case AppState::Break:
+        return "Break";
+    case AppState::Idle:
+        return "Idle";
+    case AppState::Counting:
+        return "Counting";
+    }
+    return QString();
+}
+
 void MainWindow::shiftTo(AppState newState)
 {
     if (newState == mState)
         return;
+#if defined(DEBUG)
+    qDebug() << state2str(mState) << " -> " << state2str(newState);
+#endif
 
     switch (newState)
     {
@@ -380,9 +399,6 @@ void MainWindow::onLongBreakStart()
 
     // Start progress bar
     mProgressTimer->start();
-
-    // Refresh UI
-    onUpdateUI();
 }
 
 void MainWindow::onLongBreakEnd()
@@ -401,16 +417,14 @@ void MainWindow::onLongBreakEnd()
     mProgressTimer->stop();
 
     // Start new timer
-    mBreakStartTimer->stop();
-    mBreakStartTimer->start(std::chrono::seconds(mAppConfig.longbreak_interval));
-    mBreakNotifyTimer->stop();
-    mBreakNotifyTimer->start(std::chrono::seconds(mAppConfig.longbreak_interval - 30));
+    if (!mBreakStartTimer->isActive())
+        mBreakStartTimer->start(std::chrono::seconds(mAppConfig.longbreak_interval));
+    if (!mBreakNotifyTimer->isActive())
+        mBreakNotifyTimer->start(std::chrono::seconds(mAppConfig.longbreak_interval - 30));
 
-    // Refresh UI
-    onUpdateUI();
-
-    // Play selecged audio
-    play_audio(mAppConfig.play_audio);
+    // Play selected audio. When break is postponed - audio is not played
+    if (!mPostponeCount)
+        play_audio(mAppConfig.play_audio);
 
     // Run script
     if (!mAppConfig.script_on_break_finish.isEmpty())
@@ -437,8 +451,7 @@ void MainWindow::onLongBreakPostpone()
     mBreakNotifyTimer->stop();
     mBreakNotifyTimer->start(std::chrono::seconds(mAppConfig.longbreak_postpone_interval - 30));
 
-    // Refresh UI
-    onUpdateUI();
+    shiftTo(AppState::Counting);
 }
 
 void MainWindow::onProgress()
@@ -501,7 +514,6 @@ void MainWindow::onIdleEnd()
     }
 
     mWorkInterval = mAppConfig.longbreak_interval * 1000;
-    shiftTo(AppState::Counting);
 }
 
 void MainWindow::onSettings()
