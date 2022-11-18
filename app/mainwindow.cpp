@@ -384,6 +384,7 @@ void MainWindow::onLongBreakStart()
 {
     mBreakStartTimer->stop();
     mBreakNotifyTimer->stop();
+    qDebug() << "Stop main and notify timers.";
 
     // Reset idle counter
     mIdleStart.reset();
@@ -418,9 +419,15 @@ void MainWindow::onLongBreakEnd()
 
     // Start new timer
     if (!mBreakStartTimer->isActive())
+    {
         mBreakStartTimer->start(std::chrono::seconds(mAppConfig.longbreak_interval));
+        qDebug() << "Start main timer for " << mAppConfig.longbreak_interval << " seconds.";
+    }
     if (!mBreakNotifyTimer->isActive())
+    {
         mBreakNotifyTimer->start(std::chrono::seconds(mAppConfig.longbreak_interval - 30));
+        qDebug() << "Start notify timer for " << mAppConfig.longbreak_interval - 30 << " seconds.";
+    }
 
     // Play selected audio. When break is postponed - audio is not played
     if (!mPostponeCount)
@@ -491,11 +498,12 @@ void MainWindow::onIdleStart()
     mIdleStart = std::chrono::steady_clock::now();
 
     // How much working time remains
-    mWorkInterval = mBreakStartTimer->remainingTime();
+    mRemainingWorkInterval = mBreakStartTimer->remainingTime() / 1000;
 
     // Stop main & notify timers
     mBreakStartTimer->stop();
     mBreakNotifyTimer->stop();
+    qDebug() << "Stop main and notify timers.";
 }
 
 void MainWindow::onIdleEnd()
@@ -506,14 +514,24 @@ void MainWindow::onIdleEnd()
     mIdleStart.reset();
 
     // Update timer(s) duration
-    if (mWorkInterval >= 0)
+    if (mRemainingWorkInterval)
     {
-        mBreakStartTimer->setInterval(mWorkInterval);
-        if (mWorkInterval > INTERVAL_NOTIFICATION)
-            mBreakNotifyTimer->setInterval(mWorkInterval - INTERVAL_NOTIFICATION);
+        mBreakStartTimer->setInterval(std::chrono::seconds(*mRemainingWorkInterval));
+        if (mRemainingWorkInterval > INTERVAL_NOTIFICATION)
+            mBreakNotifyTimer->setInterval(std::chrono::seconds(*mRemainingWorkInterval - INTERVAL_NOTIFICATION));
+        mRemainingWorkInterval.reset();
+    }
+    else
+    {
+        mBreakStartTimer->setInterval(std::chrono::seconds(mAppConfig.longbreak_interval));
+        if (mRemainingWorkInterval > INTERVAL_NOTIFICATION)
+            mBreakNotifyTimer->setInterval(std::chrono::seconds(mAppConfig.longbreak_interval - INTERVAL_NOTIFICATION));
     }
 
-    mWorkInterval = mAppConfig.longbreak_interval * 1000;
+    if (!mBreakStartTimer->isActive())
+        mBreakStartTimer->start();
+    if (!mBreakNotifyTimer->isActive())
+        mBreakNotifyTimer->start();
 }
 
 void MainWindow::onSettings()

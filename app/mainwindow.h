@@ -50,7 +50,7 @@ private:
     std::chrono::steady_clock::time_point mBreakStartTime;
 
     // How much milliseconds remains for main break
-    int mWorkInterval = -1;
+    std::optional<int> mRemainingWorkInterval;
 
     app_settings::config mAppConfig;
     int mPostponeCount;
