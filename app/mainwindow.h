@@ -43,7 +43,7 @@ private:
     QTimer* mBreakStartTimer;           // Main timer - triggers when break occurs
     QTimer* mBreakNotifyTimer;          // Timer to show notification from system tray
     QTimer* mUpdateUITimer;             // Update UI timer - triggers every minute to update UI and checks for idle
-    QTimer* mProgressTimer;             // Break progress timer
+    QTimer* mProgressTimer;             // Break progress timer - updates an UI
     QSystemTrayIcon* mTrayIcon;
     SettingsDialog* mSettingsDialog;
 

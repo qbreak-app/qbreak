@@ -225,7 +225,10 @@ static QString secondsToText(int seconds)
     if (seconds < 60)
         return QObject::tr("%1 seconds").arg(seconds);
     else
-        return QObject::tr("%1 minutes").arg(seconds / 60);
+    {
+        int minutes = int(float(seconds) / 60 + 0.5f);
+        return QObject::tr("%1 minutes").arg(minutes);
+    }
 }
 
 void MainWindow::createTrayIcon()
@@ -317,59 +320,56 @@ void MainWindow::shiftTo(AppState newState)
     onUpdateUI();
 }
 
-void MainWindow::onUpdateUI()
-{
-    int idle_milliseconds = 0;
-    switch (mState)
-    {
-    case AppState::None:
-        // Do nothing, app is not started
-        break;
+void MainWindow::onUpdateUI() {
+  int idle_milliseconds = 0;
+  switch (mState) {
+  case AppState::None:
+    // Do nothing, app is not started
+    break;
 
-    case AppState::Idle:
-        // Detected idle, don't count this time as working
-        // But check - maybe idle is over
-        idle_milliseconds = get_idle_time_dynamically();
-        if (idle_milliseconds < mAppConfig.idle_timeout * 60 * 1000)
-        {
-            shiftTo(AppState::Counting);
-            return;
-        }
-        break;
+  case AppState::Idle:
+    // Detected idle, don't count this time as working
+    // But check - maybe idle is over
+    idle_milliseconds = get_idle_time_dynamically();
+    if (idle_milliseconds < mAppConfig.idle_timeout * 60 * 1000) {
+      shiftTo(AppState::Counting);
+      return;
+    }
+    break;
 
-    case AppState::Break:
-        // Break is active
-        if (mTrayIcon)
-            mTrayIcon->setToolTip(QString());
-        break;
+  case AppState::Break:
+    // Break is active
+    if (mTrayIcon)
+      mTrayIcon->setToolTip(QString());
+    break;
 
-    case AppState::Counting:
-        // Working, break is closing
-        // Check maybe it is idle ?
-        if (!mIdleStart && mAppConfig.idle_timeout)
-        {
-            idle_milliseconds = get_idle_time_dynamically();
-            if (idle_milliseconds >= mAppConfig.idle_timeout * 60 * 1000)
-            {
-                shiftTo(AppState::Idle);
-                return;
-            }
-        }
-
-        // Update tray icon
-        if (mTrayIcon)
-        {
-            auto remaining_milliseconds = mBreakStartTimer->remainingTime();
-            if (remaining_milliseconds < 60000)
-                mTrayIcon->setToolTip(tr("Less than a minute left until the next break."));
-            else
-                mTrayIcon->setToolTip(tr("There are %1 minutes left until the next break.").arg(msec2min(remaining_milliseconds)));
-        }
-
-        break;
+  case AppState::Counting:
+    // Working, break is closing
+    // Check maybe it is idle ?
+    if (!mIdleStart && mAppConfig.idle_timeout) {
+      idle_milliseconds = get_idle_time_dynamically();
+      if (idle_milliseconds >= mAppConfig.idle_timeout * 60 * 1000) {
+        shiftTo(AppState::Idle);
+        return;
+      }
     }
 
-    ui->mSkipButton->setVisible(mPostponeCount > 0);
+    // Update tray icon
+    if (mTrayIcon) {
+      auto remaining_milliseconds = mBreakStartTimer->remainingTime();
+      if (remaining_milliseconds < 60000)
+        mTrayIcon->setToolTip(
+            tr("Less than a minute left until the next break."));
+      else
+        mTrayIcon->setToolTip(
+            tr("There are %1 minutes left until the next break.")
+                .arg(msec2min(remaining_milliseconds)));
+    }
+
+    break;
+  }
+
+  ui->mSkipButton->setVisible(mPostponeCount > 0);
 }
 
 void MainWindow::onLongBreakNotify()
@@ -400,14 +400,14 @@ void MainWindow::onLongBreakStart()
 
     // Start progress bar
     mProgressTimer->start();
+
+    // Update title immediate
+    onProgress();
 }
 
 void MainWindow::onLongBreakEnd()
 {
     // qDebug() << "Long break ends.";
-
-    // Reset postpone counter
-    mPostponeCount = 0;
 
     // Prepare to next triggering
     ui->mProgressBar->setValue(0);
@@ -477,6 +477,7 @@ void MainWindow::onProgress()
     if (percents > 100)
     {
         mProgressTimer->stop();
+        mPostponeCount = 0; // Reset postpone counter
         shiftTo(AppState::Counting);
     }
     else
