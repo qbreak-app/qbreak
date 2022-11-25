@@ -8,5 +8,5 @@ if [ ! -d "$QT_HOME" ] ; then
 fi
 
 # Build .appimage
-/usr/bin/python3 build_qbreak.py
+/usr/bin/python3 build_qbreak.py release
 

@@ -54,7 +54,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 unix:LIBS += -L/usr/X11R6/lib/          \
              -lX11 -lXext -lXss -ldl
 
-debug: DEFINES += DEBUG
+Debug: DEFINES += DEBUG
 
 # When using wayland:
 # unix:LIBS +=  -L/usr/local/lib           \
