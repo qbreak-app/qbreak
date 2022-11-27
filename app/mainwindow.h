@@ -65,7 +65,6 @@ private:
     void init();
     void loadConfig();
     void applyConfig();
-    void schedule();
     void createTrayIcon();
     void showMe();
     void hideMe();

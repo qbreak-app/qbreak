@@ -19,6 +19,11 @@
 #include <QWindow>
 #include <QFileInfo>
 #include <QSound>
+#include <QCommandLineOption>
+#include <QCommandLineParser>
+#include <QDateTime>
+
+#include <string>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -117,10 +122,53 @@ void MainWindow::init()
     shiftTo(AppState::Counting);
 }
 
+static QString get_time()
+{
+    return QDateTime::currentDateTime().toString();
+}
+
+static QString get_log_prefix()
+{
+    return get_time();
+}
+
+static int str_to_seconds(const QString& s)
+{
+    if (s.isEmpty())
+        throw std::runtime_error("Bad parameter value.");
+
+    if (s.back() == 'h')
+        return s.leftRef(s.size()-1).toInt() * 3600;
+    if (s.back() == 'm')
+        return s.leftRef(s.size()-1).toInt() * 60;
+    if (s.back() == 's')
+        return s.leftRef(s.size()-1).toInt();
+
+    if (s.back().isDigit())
+        return s.toInt();
+
+    throw std::runtime_error("Bad parameter value");
+}
+
 void MainWindow::loadConfig()
 {
-    app_settings settings;
-    mAppConfig = settings.load();
+    mAppConfig = app_settings::load();
+
+    // Check for command line options
+    QCommandLineParser parser;
+    QCommandLineOption
+            param_break("break-duration", "Long break duration.", "break-duration"),
+            param_work("work-duration", "Work time duration.", "work-duration"),
+            param_idle("idle-timeout", "Idle timeout.", "idle-timeout");
+    parser.addOptions({param_break, param_work, param_idle});
+
+    parser.process(*QApplication::instance());
+    if (parser.isSet(param_break))
+        mAppConfig.longbreak_length = str_to_seconds(parser.value(param_break));
+    if (parser.isSet(param_work))
+        mAppConfig.longbreak_interval = str_to_seconds(parser.value(param_work));
+    if (parser.isSet(param_idle))
+        mAppConfig.idle_timeout = str_to_seconds(parser.value(param_idle));
 }
 
 void MainWindow::applyConfig()
@@ -153,39 +201,6 @@ void MainWindow::applyConfig()
         autostart::disable();
 }
 
-void MainWindow::schedule()
-{
-    ;
-}
-
-void MainWindow::test_1()
-{
-    // 10 seconds test break
-    mAppConfig.longbreak_length = 10;
-    mAppConfig.longbreak_postpone_interval = 10;
-    mAppConfig.longbreak_interval = 10;
-
-    mAppConfig.window_on_top = true;
-    mAppConfig.verbose = true;
-    applyConfig();
-    onUpdateUI();
-    shiftTo(AppState::Break);
-}
-
-void MainWindow::test_2()
-{
-    // 60 seconds test break
-    mAppConfig.longbreak_length = 60;
-    mAppConfig.longbreak_postpone_interval = 60;
-    mAppConfig.longbreak_interval = 60;
-
-    mAppConfig.window_on_top = true;
-    mAppConfig.verbose = true;
-
-    applyConfig();
-    onUpdateUI();
-}
-
 void MainWindow::showMe()
 {
     QScreen* screen = nullptr;
@@ -209,8 +224,12 @@ void MainWindow::showMe()
             // qDebug() << "Window moved to screen " << screen->name() + " / " + screen->model() + " " + screen->manufacturer();
         }
     }
+    // else
+    //    qDebug() << get_log_prefix() << "Screen not found!";
 
-#if !defined(DEBUG)
+#if defined(DEBUG)
+    showMaximized();
+#else
     showFullScreen();
 #endif
 }
@@ -288,7 +307,7 @@ void MainWindow::shiftTo(AppState newState)
     if (newState == mState)
         return;
 #if defined(DEBUG)
-    qDebug() << state2str(mState) << " -> " << state2str(newState);
+    qDebug() << get_log_prefix() << state2str(mState) << " -> " << state2str(newState);
 #endif
 
     switch (newState)
@@ -321,55 +340,60 @@ void MainWindow::shiftTo(AppState newState)
 }
 
 void MainWindow::onUpdateUI() {
-  int idle_milliseconds = 0;
-  switch (mState) {
-  case AppState::None:
-    // Do nothing, app is not started
-    break;
+    int idle_milliseconds = 0;
+    switch (mState) {
+    case AppState::None:
+        // Do nothing, app is not started
+        break;
 
-  case AppState::Idle:
-    // Detected idle, don't count this time as working
-    // But check - maybe idle is over
-    idle_milliseconds = get_idle_time_dynamically();
-    if (idle_milliseconds < mAppConfig.idle_timeout * 60 * 1000) {
-      shiftTo(AppState::Counting);
-      return;
+    case AppState::Idle:
+        // Detected idle, don't count this time as working
+        // But check - maybe idle is over
+        idle_milliseconds = get_idle_time_dynamically();
+        qDebug() << get_log_prefix() << "Idle found: " << idle_milliseconds / 1000 << "s";
+
+        if (idle_milliseconds < mAppConfig.idle_timeout * 1000)
+        {
+            shiftTo(AppState::Counting);
+            return;
+        }
+        break;
+
+    case AppState::Break:
+        // Break is active
+        if (mTrayIcon)
+            mTrayIcon->setToolTip(QString());
+        break;
+
+    case AppState::Counting:
+        // Working, break is closing
+        // Check maybe it is idle ?
+        if (!mIdleStart && mAppConfig.idle_timeout)
+        {
+            idle_milliseconds = get_idle_time_dynamically();
+            if (idle_milliseconds >= mAppConfig.idle_timeout * 1000)
+            {
+                shiftTo(AppState::Idle);
+                return;
+            }
+        }
+
+        // Update tray icon
+        if (mTrayIcon) {
+            auto remaining_milliseconds = mBreakStartTimer->remainingTime();
+            if (remaining_milliseconds < 60000)
+                mTrayIcon->setToolTip(
+                            tr("Less than a minute left until the next break."));
+            else
+                mTrayIcon->setToolTip(
+                            tr("There are %1 minutes left until the next break.")
+                            .arg(msec2min(remaining_milliseconds)));
+        }
+
+        break;
     }
-    break;
 
-  case AppState::Break:
-    // Break is active
-    if (mTrayIcon)
-      mTrayIcon->setToolTip(QString());
-    break;
-
-  case AppState::Counting:
-    // Working, break is closing
-    // Check maybe it is idle ?
-    if (!mIdleStart && mAppConfig.idle_timeout) {
-      idle_milliseconds = get_idle_time_dynamically();
-      if (idle_milliseconds >= mAppConfig.idle_timeout * 60 * 1000) {
-        shiftTo(AppState::Idle);
-        return;
-      }
-    }
-
-    // Update tray icon
-    if (mTrayIcon) {
-      auto remaining_milliseconds = mBreakStartTimer->remainingTime();
-      if (remaining_milliseconds < 60000)
-        mTrayIcon->setToolTip(
-            tr("Less than a minute left until the next break."));
-      else
-        mTrayIcon->setToolTip(
-            tr("There are %1 minutes left until the next break.")
-                .arg(msec2min(remaining_milliseconds)));
-    }
-
-    break;
-  }
-
-  ui->mSkipButton->setVisible(mPostponeCount > 0);
+    ui->mSkipButton->setVisible(mPostponeCount > 0);
 }
 
 void MainWindow::onLongBreakNotify()
@@ -377,14 +401,14 @@ void MainWindow::onLongBreakNotify()
     mTrayIcon->showMessage(tr("New break"),
                            tr("New break will start in %1 secs").arg(Default_Notify_Length),
                            getAppIcon(),
-                           INTERVAL_NOTIFICATION);
+                           INTERVAL_NOTIFICATION * 1000);
 }
 
 void MainWindow::onLongBreakStart()
 {
     mBreakStartTimer->stop();
     mBreakNotifyTimer->stop();
-    qDebug() << "Stop main and notify timers.";
+    qDebug() << get_log_prefix() << "Stop main and notify timers.";
 
     // Reset idle counter
     mIdleStart.reset();
@@ -421,12 +445,12 @@ void MainWindow::onLongBreakEnd()
     if (!mBreakStartTimer->isActive())
     {
         mBreakStartTimer->start(std::chrono::seconds(mAppConfig.longbreak_interval));
-        qDebug() << "Start main timer for " << mAppConfig.longbreak_interval << " seconds.";
+        qDebug() << get_log_prefix() << "Start main timer for " << mAppConfig.longbreak_interval << " seconds.";
     }
     if (!mBreakNotifyTimer->isActive())
     {
         mBreakNotifyTimer->start(std::chrono::seconds(mAppConfig.longbreak_interval - 30));
-        qDebug() << "Start notify timer for " << mAppConfig.longbreak_interval - 30 << " seconds.";
+        qDebug() << get_log_prefix() << "Start notify timer for " << mAppConfig.longbreak_interval - 30 << " seconds.";
     }
 
     // Play selected audio. When break is postponed - audio is not played
@@ -438,7 +462,7 @@ void MainWindow::onLongBreakEnd()
     {
         int retcode = system(mAppConfig.script_on_break_finish.toStdString().c_str());
         if (retcode != 0)
-            qDebug() << "User script exited with error code " << retcode;
+            qDebug() << get_log_prefix() << "User script exited with error code " << retcode;
     }
 }
 
@@ -472,7 +496,10 @@ void MainWindow::onProgress()
     if (remaining < 0)
         remaining = 0;
 
-    ui->mRemainingLabel->setText(QString("Remaining: ") + secondsToText(remaining));
+    auto text = QString("Remaining: ") + secondsToText(remaining);
+    ui->mRemainingLabel->setText(text);
+    if (mTrayIcon)
+        mTrayIcon->setToolTip(text);
 
     if (percents > 100)
     {
@@ -504,7 +531,7 @@ void MainWindow::onIdleStart()
     // Stop main & notify timers
     mBreakStartTimer->stop();
     mBreakNotifyTimer->stop();
-    qDebug() << "Stop main and notify timers.";
+    qDebug() << get_log_prefix() << "Stop main and notify timers. Remaining time is " << mRemainingWorkInterval.value() << "s";
 }
 
 void MainWindow::onIdleEnd()
@@ -517,9 +544,14 @@ void MainWindow::onIdleEnd()
     // Update timer(s) duration
     if (mRemainingWorkInterval)
     {
+        qDebug() << get_log_prefix() << "Reset main timer to " << *mRemainingWorkInterval << "s";
         mBreakStartTimer->setInterval(std::chrono::seconds(*mRemainingWorkInterval));
+
         if (mRemainingWorkInterval > INTERVAL_NOTIFICATION)
+        {
             mBreakNotifyTimer->setInterval(std::chrono::seconds(*mRemainingWorkInterval - INTERVAL_NOTIFICATION));
+            qDebug() << get_log_prefix() << "Reset notify timer to " << *mRemainingWorkInterval - INTERVAL_NOTIFICATION << "s";
+        }
         mRemainingWorkInterval.reset();
     }
     else
