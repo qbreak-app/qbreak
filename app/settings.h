@@ -27,8 +27,8 @@ const QString Primary_Monitor = "[Primary]";
 
 // Default behavior is not play any audio on break end.
 const QString Audio_Empty = "None";
-const QString Audio_Default_1 = "Default 1";
-const QString Audio_Default_2 = "Default 2";
+const QString Audio_Retro = "Retro";
+const QString Audio_Gagarin = "Gagarin";
 const QString Audio_Custom = "Custom...";
 
 struct audio_item
@@ -38,8 +38,8 @@ struct audio_item
 };
 
 const std::map<QString, QString> AudioMap {
-    {Audio_Default_1, ":/assets/sound/alarm-retro.wav"},
-    {Audio_Default_2, ":/assets/sound/alarm-poehali.wav"},
+    {Audio_Retro, ":/assets/sound/alarm-retro.wav"},
+    {Audio_Gagarin, ":/assets/sound/alarm-poehali.wav"},
 };
 
 

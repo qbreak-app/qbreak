@@ -55,7 +55,7 @@ void SettingsDialog::init()
     ui->mPreferredMonitorCombobox->setCurrentIndex(found_idx);
 
     // Fill audio combo box
-    auto audios = {Audio_Empty, Audio_Default_1, Audio_Default_2, Audio_Custom};
+    auto audios = {Audio_Empty, Audio_Retro, Audio_Gagarin, Audio_Custom};
     ui->mAudioComboBox->addItems(audios);
     mCustomAudioIdx = audios.size() - 1;
 

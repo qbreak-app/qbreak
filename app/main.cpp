@@ -9,7 +9,7 @@
 
 int main(int argc, char *argv[])
 {
-    RunGuard guard("adjfaifaif");
+    RunGuard guard("QBreak app - runguard");
     if ( !guard.tryToRun() )
         return 0;
 

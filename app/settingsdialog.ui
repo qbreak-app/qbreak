@@ -131,7 +131,7 @@
      <item row="9" column="0">
       <widget class="QLabel" name="label_8">
        <property name="text">
-        <string>Command to run when break finish</string>
+        <string>Shell command to run when break finish</string>
        </property>
       </widget>
      </item>

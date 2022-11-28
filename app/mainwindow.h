@@ -53,12 +53,12 @@ private:
     std::optional<int> mRemainingWorkInterval;
 
     app_settings::config mAppConfig;
-    int mPostponeCount;
+    int mPostponeCount = 0;
 
     // Time when idle was started
     std::optional<std::chrono::steady_clock::time_point> mIdleStart;
 
-    int mLastIdleMilliseconds;
+    int mLastIdleMilliseconds = 0;
 
     AppState mState = AppState::None;
 

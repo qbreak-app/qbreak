@@ -454,7 +454,7 @@ void MainWindow::onLongBreakEnd()
     }
 
     // Play selected audio. When break is postponed - audio is not played
-    if (!mPostponeCount)
+    if (0 == mPostponeCount)
         play_audio(mAppConfig.play_audio);
 
     // Run script
