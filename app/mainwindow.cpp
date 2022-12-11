@@ -122,16 +122,6 @@ void MainWindow::init()
     shiftTo(AppState::Counting);
 }
 
-static QString get_time()
-{
-    return QDateTime::currentDateTime().toString();
-}
-
-static QString get_log_prefix()
-{
-    return get_time();
-}
-
 static int str_to_seconds(const QString& s)
 {
     if (s.isEmpty())
@@ -225,7 +215,7 @@ void MainWindow::showMe()
         }
     }
     // else
-    //    qDebug() << get_log_prefix() << "Screen not found!";
+    //    qDebug() << "Screen not found!";
 
 #if defined(DEBUG)
     showMaximized();
@@ -306,9 +296,7 @@ void MainWindow::shiftTo(AppState newState)
 {
     if (newState == mState)
         return;
-#if defined(DEBUG)
-    qDebug() << get_log_prefix() << state2str(mState) << " -> " << state2str(newState);
-#endif
+    qDebug() << state2str(mState) << " -> " << state2str(newState);
 
     switch (newState)
     {
@@ -339,7 +327,10 @@ void MainWindow::shiftTo(AppState newState)
     onUpdateUI();
 }
 
-void MainWindow::onUpdateUI() {
+void MainWindow::onUpdateUI()
+{
+    qDebug() << "UI timer fired.";
+
     int idle_milliseconds = 0;
     switch (mState) {
     case AppState::None:
@@ -350,7 +341,7 @@ void MainWindow::onUpdateUI() {
         // Detected idle, don't count this time as working
         // But check - maybe idle is over
         idle_milliseconds = get_idle_time_dynamically();
-        qDebug() << get_log_prefix() << "Idle found: " << idle_milliseconds / 1000 << "s";
+        qDebug() << "Idle found: " << idle_milliseconds / 1000 << "s";
 
         if (idle_milliseconds < mAppConfig.idle_timeout * 1000)
         {
@@ -371,6 +362,8 @@ void MainWindow::onUpdateUI() {
         if (!mIdleStart && mAppConfig.idle_timeout)
         {
             idle_milliseconds = get_idle_time_dynamically();
+            qDebug() << "Idle found: " << idle_milliseconds / 1000 << "s";
+
             if (idle_milliseconds >= mAppConfig.idle_timeout * 1000)
             {
                 shiftTo(AppState::Idle);
@@ -408,7 +401,7 @@ void MainWindow::onLongBreakStart()
 {
     mBreakStartTimer->stop();
     mBreakNotifyTimer->stop();
-    qDebug() << get_log_prefix() << "Stop main and notify timers.";
+    qDebug() << "Stop main and notify timers.";
 
     // Reset idle counter
     mIdleStart.reset();
@@ -445,12 +438,12 @@ void MainWindow::onLongBreakEnd()
     if (!mBreakStartTimer->isActive())
     {
         mBreakStartTimer->start(std::chrono::seconds(mAppConfig.longbreak_interval));
-        qDebug() << get_log_prefix() << "Start main timer for " << mAppConfig.longbreak_interval << " seconds.";
+        qDebug() << "Start main timer for " << mAppConfig.longbreak_interval << " seconds.";
     }
     if (!mBreakNotifyTimer->isActive())
     {
         mBreakNotifyTimer->start(std::chrono::seconds(mAppConfig.longbreak_interval - 30));
-        qDebug() << get_log_prefix() << "Start notify timer for " << mAppConfig.longbreak_interval - 30 << " seconds.";
+        qDebug() << "Start notify timer for " << mAppConfig.longbreak_interval - 30 << " seconds.";
     }
 
     // Play selected audio. When break is postponed - audio is not played
@@ -462,7 +455,7 @@ void MainWindow::onLongBreakEnd()
     {
         int retcode = system(mAppConfig.script_on_break_finish.toStdString().c_str());
         if (retcode != 0)
-            qDebug() << get_log_prefix() << "User script exited with error code " << retcode;
+            qDebug() << "User script exited with error code " << retcode;
     }
 }
 
@@ -531,7 +524,7 @@ void MainWindow::onIdleStart()
     // Stop main & notify timers
     mBreakStartTimer->stop();
     mBreakNotifyTimer->stop();
-    qDebug() << get_log_prefix() << "Stop main and notify timers. Remaining time is " << mRemainingWorkInterval.value() << "s";
+    qDebug() << "Stop main and notify timers. Remaining time is " << mRemainingWorkInterval.value() << "s";
 }
 
 void MainWindow::onIdleEnd()
@@ -544,13 +537,13 @@ void MainWindow::onIdleEnd()
     // Update timer(s) duration
     if (mRemainingWorkInterval)
     {
-        qDebug() << get_log_prefix() << "Reset main timer to " << *mRemainingWorkInterval << "s";
+        qDebug() << "Reset main timer to " << *mRemainingWorkInterval << "s";
         mBreakStartTimer->setInterval(std::chrono::seconds(*mRemainingWorkInterval));
 
         if (mRemainingWorkInterval > INTERVAL_NOTIFICATION)
         {
             mBreakNotifyTimer->setInterval(std::chrono::seconds(*mRemainingWorkInterval - INTERVAL_NOTIFICATION));
-            qDebug() << get_log_prefix() << "Reset notify timer to " << *mRemainingWorkInterval - INTERVAL_NOTIFICATION << "s";
+            qDebug() << "Reset notify timer to " << *mRemainingWorkInterval - INTERVAL_NOTIFICATION << "s";
         }
         mRemainingWorkInterval.reset();
     }

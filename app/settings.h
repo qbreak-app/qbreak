@@ -71,7 +71,7 @@ public:
         selected_audio play_audio;
         QString script_on_break_finish;
 
-        // Zero means "idle is not tracked"
+        // Zero means "idle is not tracked". Value in seconds.
         int idle_timeout                    = Default_Idle_Timeout;
     };
 
