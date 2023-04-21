@@ -64,6 +64,17 @@ static fs::path autostart_path()
 
 void autostart::enable(const std::string& path_to_me)
 {
+    // Ensure autostart directory exists at all
+    if (!fs::exists(autostart_dir()))
+    {
+        std::error_code ec;
+        if (!fs::create_directory(autostart_dir(), ec))
+        {
+            qDebug() << "Failed to create autostart directory. Error: " << QString::fromStdString(ec.message());
+            return;
+        }
+    }
+
     // Put .desktop file to ~/.config/autostart
     std::ofstream ofs(autostart_path());
     if (ofs.is_open())

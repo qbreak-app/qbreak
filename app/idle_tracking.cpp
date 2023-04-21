@@ -6,9 +6,9 @@
 #if defined(TARGET_LINUX)
 
 #include <QObject>
-#include <QDBusConnection>
-#include <QDBusReply>
-#include <QDBusInterface>
+#include <QtDBus/QDBusConnection>
+#include <QtDBus/QDBusReply>
+#include <QtDBus/QDBusInterface>
 
 // Thanks to https://stackoverflow.com/questions/222606/detecting-keyboard-mouse-activity-in-linux
 
