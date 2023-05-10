@@ -1,6 +1,6 @@
 QT       += core gui svg multimedia widgets dbus
 
-CONFIG += debug_and_release
+CONFIG += debug_and_release console
 
 
 CONFIG += c++17 lrelease embed_translations
