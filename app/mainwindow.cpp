@@ -218,7 +218,8 @@ void MainWindow::showMe()
     //    qDebug() << "Screen not found!";
 
 #if defined(DEBUG)
-    showMaximized();
+    showFullScreen();
+    //showMaximized();
 #else
     showFullScreen();
 #endif
@@ -292,6 +293,21 @@ QString state2str(AppState state)
     return QString();
 }
 
+static void dispatchToMainThread(std::function<void()> callback)
+{
+    // any thread
+    QTimer* timer = new QTimer();
+    timer->moveToThread(qApp->thread());
+    timer->setSingleShot(true);
+    QObject::connect(timer, &QTimer::timeout, [=]()
+    {
+        // main thread
+        callback();
+        timer->deleteLater();
+    });
+    QMetaObject::invokeMethod(timer, "start", Qt::QueuedConnection, Q_ARG(int, 0));
+}
+
 void MainWindow::shiftTo(AppState newState)
 {
     if (newState == mState)
@@ -324,7 +340,12 @@ void MainWindow::shiftTo(AppState newState)
     }
 
     mState = newState;
-    onUpdateUI();
+
+    // Run deferred in main UI thread
+    dispatchToMainThread([this](){
+        onUpdateUI();
+    });
+
 }
 
 void MainWindow::onUpdateUI()
@@ -382,6 +403,8 @@ void MainWindow::onUpdateUI()
                             tr("There are %1 minutes left until the next break.")
                             .arg(msec2min(remaining_milliseconds)));
         }
+        else
+            qDebug() << "No tray icon available.";
 
         break;
     }
