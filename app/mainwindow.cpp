@@ -299,6 +299,7 @@ static void dispatchToMainThread(std::function<void()> callback)
     QTimer* timer = new QTimer();
     timer->moveToThread(qApp->thread());
     timer->setSingleShot(true);
+    timer->setInterval(std::chrono::milliseconds(500));
     QObject::connect(timer, &QTimer::timeout, [=]()
     {
         // main thread
@@ -345,7 +346,6 @@ void MainWindow::shiftTo(AppState newState)
     dispatchToMainThread([this](){
         onUpdateUI();
     });
-
 }
 
 void MainWindow::onUpdateUI()
