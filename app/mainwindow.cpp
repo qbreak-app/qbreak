@@ -12,25 +12,46 @@
 #include <QAction>
 #include <QSettings>
 #include <QDebug>
-#include <QDesktopWidget>
 #include <QSvgGenerator>
 #include <QPalette>
 #include <QScreen>
 #include <QWindow>
 #include <QFileInfo>
-#include <QSound>
 #include <QCommandLineOption>
 #include <QCommandLineParser>
 #include <QDateTime>
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+# include <QDesktopWidget>
+# include <QSound>
+#endif
+
 #include <string>
+
+static void dispatchToMainThread(std::function<void()> callback, std::chrono::milliseconds delay = std::chrono::milliseconds(0))
+{
+    // any thread
+    QTimer* timer = new QTimer();
+    timer->moveToThread(qApp->thread());
+    timer->setSingleShot(true);
+    timer->setInterval(delay);
+    QObject::connect(timer, &QTimer::timeout, [=]()
+    {
+        // main thread
+        callback();
+        timer->deleteLater();
+    });
+    QMetaObject::invokeMethod(timer, "start", Qt::QueuedConnection, Q_ARG(int, 0));
+}
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    init();
+
+    // Defer init call for 100 ms - attempt to resolve the problem with non working setTooltip()
+    dispatchToMainThread([this](){init();}, std::chrono::milliseconds(100));
 }
 
 MainWindow::~MainWindow()
@@ -128,11 +149,11 @@ static int str_to_seconds(const QString& s)
         throw std::runtime_error("Bad parameter value.");
 
     if (s.back() == 'h')
-        return s.leftRef(s.size()-1).toInt() * 3600;
+        return s.left(s.size()-1).toInt() * 3600;
     if (s.back() == 'm')
-        return s.leftRef(s.size()-1).toInt() * 60;
+        return s.left(s.size()-1).toInt() * 60;
     if (s.back() == 's')
-        return s.leftRef(s.size()-1).toInt();
+        return s.left(s.size()-1).toInt();
 
     if (s.back().isDigit())
         return s.toInt();
@@ -293,21 +314,6 @@ QString state2str(AppState state)
     return QString();
 }
 
-static void dispatchToMainThread(std::function<void()> callback)
-{
-    // any thread
-    QTimer* timer = new QTimer();
-    timer->moveToThread(qApp->thread());
-    timer->setSingleShot(true);
-    timer->setInterval(std::chrono::milliseconds(500));
-    QObject::connect(timer, &QTimer::timeout, [=]()
-    {
-        // main thread
-        callback();
-        timer->deleteLater();
-    });
-    QMetaObject::invokeMethod(timer, "start", Qt::QueuedConnection, Q_ARG(int, 0));
-}
 
 void MainWindow::shiftTo(AppState newState)
 {

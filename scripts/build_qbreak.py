@@ -84,7 +84,7 @@ if platform.system() == 'Linux':
         '-qmake=' + os.environ['QT_HOME'] + '/bin/qmake', 
         '-unsupported-allow-new-glibc', 
         #'-no-translations', 
-        '-extra-plugins=iconengines,platformthemes/libqgtk3.so'
+        '-extra-plugins=iconengines,platformthemes/libqgtk3.so,platforms/libqxcb.so'
     ]
 
     desktop_path = 'appimage_dir/usr/share/applications/qbreak.desktop'
