@@ -286,10 +286,11 @@ void MainWindow::createTrayIcon()
 
     mTrayIcon->setContextMenu(menu);
     mTrayIcon->setIcon(getTrayIcon());
-    mTrayIcon->setToolTip(AppName);
-    mTrayIcon->show();
+    // mTrayIcon->setToolTip(AppName);
     connect(mTrayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
             this, SLOT(onTrayIconActivated(QSystemTrayIcon::ActivationReason)));
+
+    mTrayIcon->show();
 }
 
 static int msec2min(int msec)
