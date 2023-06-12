@@ -59,5 +59,3 @@ Release: DEFINES += QT_NO_DEBUG_OUTPUT
 # When using wayland:
 # unix:LIBS +=  -L/usr/local/lib           \
 #               -lwayland-client-unstable++ -lwayland-client-extra++ -lwayland-client++
-
-
