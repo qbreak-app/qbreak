@@ -210,6 +210,7 @@ int get_idle_time_kde_wayland()
 
 #endif
 
+static bool Warning_X11InWayland = false;
 int get_idle_time_dynamically()
 {
     const char* wl_display = std::getenv("WAYLAND_DISPLAY");
@@ -235,8 +236,14 @@ int get_idle_time_dynamically()
 #else
     // Restrict to X11
     if (wl_display)
+    {
+        // One time error message
+        if (!Warning_X11InWayland) {
+            qDebug() << "Wayland is found, but app built for X11 only. Idle tracking is not supported.";
+            Warning_X11InWayland = true;
+        }
         return 0;
-
+    }
     return get_idle_time_x11();
 #endif
 }
