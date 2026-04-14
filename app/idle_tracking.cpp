@@ -115,132 +115,196 @@ int get_idle_time_gnome()
 }
 
 #if defined(USE_WAYLAND)
-#include <wayland-client-protocol-unstable.hpp>
+#include <wayland-client.h>
+#include "wayland/ext-idle-notify-v1-client-protocol.h"
 
-class kde_idle_detector
+#include <QSocketNotifier>
+#include <QElapsedTimer>
+#include <QDebug>
+#include <algorithm>
+#include <cstring>
+
+namespace {
+
+// Idle-tracking backend for Wayland compositors that implement
+// ext-idle-notify-v1 (KWin >= 5.26, Mutter >= 45, Sway, Hyprland, ...).
+// Registers a single notification with a short timeout and reports elapsed
+// time since the compositor marked the seat idle.
+class WaylandIdleMonitor
 {
-private:
-    wayland::seat_t seat;
-    wayland::display_t d;
-    wayland::org_kde_kwin_idle_t idle;
-    wayland::org_kde_kwin_idle_timeout_t idle_timer;
-
-    uint64_t idle_start = 0;
-    uint64_t idle_finish = 0;
-    bool active = false;
-
 public:
-    kde_idle_detector()
-    {}
-    ~kde_idle_detector()
+    static WaylandIdleMonitor& instance()
     {
-        stop();
+        static WaylandIdleMonitor inst;
+        return inst;
     }
 
-    // Idle timeout is in msec
-    void start(int idle_timeout)
+    // True once the connection and idle-notifier global have been set up.
+    // Returns false on compositors that don't implement ext-idle-notify-v1.
+    bool available()
     {
-        if (active)
+        ensure_started();
+        return mStarted;
+    }
+
+    // Idle time in milliseconds; 0 while the seat is active.
+    int get_idle_ms()
+    {
+        if (!mStarted || !mIdle)
+            return 0;
+        return static_cast<int>(kTimeoutMs + mIdleSince.elapsed());
+    }
+
+private:
+    static constexpr uint32_t kTimeoutMs = 1000;
+
+    wl_display* mDisplay = nullptr;
+    wl_registry* mRegistry = nullptr;
+    wl_seat* mSeat = nullptr;
+    ext_idle_notifier_v1* mNotifier = nullptr;
+    ext_idle_notification_v1* mNotification = nullptr;
+    uint32_t mNotifierVersion = 0;
+    QSocketNotifier* mSocket = nullptr;
+
+    bool mStarted = false;
+    bool mStartAttempted = false;
+    bool mIdle = false;
+    QElapsedTimer mIdleSince;
+
+    WaylandIdleMonitor() = default;
+    ~WaylandIdleMonitor() { teardown(); }
+
+    WaylandIdleMonitor(const WaylandIdleMonitor&) = delete;
+    WaylandIdleMonitor& operator=(const WaylandIdleMonitor&) = delete;
+
+    void ensure_started()
+    {
+        if (mStarted || mStartAttempted)
+            return;
+        mStartAttempted = true;
+
+        mDisplay = wl_display_connect(nullptr);
+        if (!mDisplay)
             return;
 
-        auto registry = d.get_registry();
-        registry.on_global() = [&] (uint32_t name, const std::string& interface, uint32_t version)
-        {
-          if (interface == wayland::seat_t::interface_name)
-            registry.bind(name, this->seat, version);
-          else
-          if (interface == wayland::org_kde_kwin_idle_t::interface_name)
-              registry.bind(name, this->idle, version);
+        static const wl_registry_listener reg_listener = {
+            &WaylandIdleMonitor::on_global,
+            &WaylandIdleMonitor::on_global_remove,
         };
-        d.roundtrip();
+        mRegistry = wl_display_get_registry(mDisplay);
+        wl_registry_add_listener(mRegistry, &reg_listener, this);
+        wl_display_roundtrip(mDisplay);
 
-
-        bool has_keyboard = false, has_pointer = false;
-        seat.on_capabilities() = [&] (const wayland::seat_capability& capability)
+        if (!mSeat || !mNotifier)
         {
-          has_keyboard = capability & wayland::seat_capability::keyboard;
-          has_pointer = capability & wayland::seat_capability::pointer;
-        };
-        d.roundtrip();
-
-        idle_timer = idle.get_idle_timeout(seat, idle_timeout);
-        idle_timer.on_idle() = [&]()
-        {
-            idle_start = ::time(nullptr);
-        };
-
-        idle_timer.on_resumed() = [&]()
-        {
-            idle_finish = ::time(nullptr);
-        };
-
-        active = true;
-    }
-
-    void stop()
-    {
-        if (!active)
+            qDebug() << "ext-idle-notify-v1 not advertised by compositor";
+            teardown();
             return;
-
-        active = false;
-        idle_timer.release();
-        seat.release();
-    }
-
-    // Return idle time in microseconds
-    int get_idle_time() const
-    {
-        if (idle_start > idle_finish)
-        {
-            return (::time(nullptr) - idle_start) * 1000;
         }
 
-        return 0;
+        // v2's get_input_idle_notification ignores idle inhibitors, matching
+        // the input-only semantics of the X11 and GNOME Mutter backends.
+        if (mNotifierVersion >= 2)
+            mNotification = ext_idle_notifier_v1_get_input_idle_notification(mNotifier, kTimeoutMs, mSeat);
+        else
+            mNotification = ext_idle_notifier_v1_get_idle_notification(mNotifier, kTimeoutMs, mSeat);
+
+        static const ext_idle_notification_v1_listener note_listener = {
+            &WaylandIdleMonitor::on_idled,
+            &WaylandIdleMonitor::on_resumed,
+        };
+        ext_idle_notification_v1_add_listener(mNotification, &note_listener, this);
+        wl_display_flush(mDisplay);
+
+        mSocket = new QSocketNotifier(wl_display_get_fd(mDisplay), QSocketNotifier::Read);
+        QObject::connect(mSocket, &QSocketNotifier::activated, mSocket, [this]() {
+            if (wl_display_dispatch(mDisplay) < 0)
+            {
+                qWarning() << "Wayland display dispatch failed; disabling idle monitor";
+                mSocket->setEnabled(false);
+            }
+        });
+
+        mStarted = true;
+    }
+
+    void teardown()
+    {
+        if (mSocket) { delete mSocket; mSocket = nullptr; }
+        if (mNotification) { ext_idle_notification_v1_destroy(mNotification); mNotification = nullptr; }
+        if (mNotifier) { ext_idle_notifier_v1_destroy(mNotifier); mNotifier = nullptr; }
+        if (mSeat) { wl_seat_destroy(mSeat); mSeat = nullptr; }
+        if (mRegistry) { wl_registry_destroy(mRegistry); mRegistry = nullptr; }
+        if (mDisplay) { wl_display_disconnect(mDisplay); mDisplay = nullptr; }
+        mStarted = false;
+    }
+
+    static void on_global(void* data, wl_registry* r, uint32_t name, const char* iface, uint32_t version)
+    {
+        auto self = static_cast<WaylandIdleMonitor*>(data);
+        if (std::strcmp(iface, wl_seat_interface.name) == 0 && !self->mSeat)
+        {
+            self->mSeat = static_cast<wl_seat*>(wl_registry_bind(r, name, &wl_seat_interface, 1));
+        }
+        else if (std::strcmp(iface, ext_idle_notifier_v1_interface.name) == 0 && !self->mNotifier)
+        {
+            uint32_t v = std::min(version, 2u);
+            self->mNotifier = static_cast<ext_idle_notifier_v1*>(
+                wl_registry_bind(r, name, &ext_idle_notifier_v1_interface, v));
+            self->mNotifierVersion = v;
+        }
+    }
+
+    static void on_global_remove(void*, wl_registry*, uint32_t) {}
+
+    static void on_idled(void* data, ext_idle_notification_v1*)
+    {
+        auto self = static_cast<WaylandIdleMonitor*>(data);
+        self->mIdleSince.start();
+        self->mIdle = true;
+    }
+
+    static void on_resumed(void* data, ext_idle_notification_v1*)
+    {
+        static_cast<WaylandIdleMonitor*>(data)->mIdle = false;
     }
 };
 
-kde_idle_detector kde_idle;
-int get_idle_time_kde_wayland()
-{
-    // Ensure idle detector runs
-    kde_idle.start(1);
+} // namespace
 
-    return kde_idle.get_idle_time();
+int get_idle_time_wayland()
+{
+    return WaylandIdleMonitor::instance().get_idle_ms();
+}
+
+bool has_wayland_idle_notifier()
+{
+    return WaylandIdleMonitor::instance().available();
 }
 
 #endif
 
-static bool Warning_X11InWayland = false;
 int get_idle_time_dynamically()
 {
     const char* wl_display = std::getenv("WAYLAND_DISPLAY");
-    // const char* x11_display = std::getenv("DISPLAY");
 
 #if defined(USE_WAYLAND)
     if (wl_display)
     {
-        const char* desktop_name = std::getenv("XDG_SESSION_DESKTOP");
-        if (!desktop_name)
-            return 0;
-
-        if (strcmp(desktop_name, "KDE") == 0)
-            return get_idle_time_kde_wayland();
-        else
-        if (strcmp(desktop_name, "GNOME") == 0)
-            return get_idle_time_gnome();
-        else
-            return 0;
+        if (has_wayland_idle_notifier())
+            return get_idle_time_wayland();
+        // Compositor doesn't implement ext-idle-notify-v1 (e.g. older GNOME);
+        // fall back to the GNOME Mutter DBus interface.
+        return get_idle_time_gnome();
     }
-    else
-        return get_idle_time_x11();
+    return get_idle_time_x11();
 #else
-    // Restrict to X11
     if (wl_display)
     {
-        // One time error message
-        if (!Warning_X11InWayland) {
+        static bool warned = false;
+        if (!warned) {
             qDebug() << "Wayland is found, but app built for X11 only. Idle tracking is not supported.";
-            Warning_X11InWayland = true;
+            warned = true;
         }
         return 0;
     }

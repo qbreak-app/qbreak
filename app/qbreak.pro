@@ -18,7 +18,8 @@ SOURCES += \
     settingsdialog.cpp  \
     runguard.cpp        \
     audio_support.cpp   \
-    idle_tracking.cpp
+    idle_tracking.cpp   \
+    wayland/ext-idle-notify-v1-protocol.c
 
 
 HEADERS += \
@@ -30,7 +31,8 @@ HEADERS += \
     settingsdialog.h    \
     runguard.h          \
     audio_support.h     \
-    idle_tracking.h
+    idle_tracking.h     \
+    wayland/ext-idle-notify-v1-client-protocol.h
 
 
 FORMS += \
@@ -42,20 +44,17 @@ RESOURCES = qbreak.qrc
 
 TRANSLATIONS = strings.ts strings_en.ts strings_ru.ts
 
-unix:!macx: DEFINES += TARGET_LINUX # USE_WAYLAND
+unix:!macx: DEFINES += TARGET_LINUX USE_WAYLAND
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-# X11 and wayland libraries
+# X11 and Wayland libraries
 unix:LIBS += -L/usr/X11R6/lib/          \
-             -lX11 -lXext -lXss -ldl
+             -lX11 -lXext -lXss -ldl    \
+             -lwayland-client
 
 Debug: DEFINES += DEBUG
 Release: DEFINES += QT_NO_DEBUG_OUTPUT
-
-# When using wayland:
-# unix:LIBS +=  -L/usr/local/lib           \
-#               -lwayland-client-unstable++ -lwayland-client-extra++ -lwayland-client++
