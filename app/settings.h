@@ -22,6 +22,9 @@ const bool Default_Autostart = true;
 // Default idle timeout
 const int Default_Idle_Timeout = 0;
 
+// By default, long idle is not treated as a completed break
+const bool Default_Count_Idle_As_Break = false;
+
 const QString Default_Monitor = "";
 const QString Primary_Monitor = "[Primary]";
 
@@ -73,6 +76,11 @@ public:
 
         // Zero means "idle is not tracked". Value in seconds.
         int idle_timeout                    = Default_Idle_Timeout;
+
+        // When true, if the user's idle duration was >= longbreak_length,
+        // the idle is treated as a completed break and the next work period
+        // restarts from scratch instead of resuming the remaining time.
+        bool count_idle_as_break            = Default_Count_Idle_As_Break;
     };
 
     static void save(const config& cfg);

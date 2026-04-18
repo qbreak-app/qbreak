@@ -71,6 +71,7 @@ void SettingsDialog::init()
 
     // Idle timeout
     ui->mIdleTimeoutSpinbox->setValue(c.idle_timeout / 60);
+    ui->mCountIdleAsBreakCheckbox->setChecked(c.count_idle_as_break);
 
     mSkipAudioChangeEvent = false;
 }
@@ -91,6 +92,7 @@ void SettingsDialog::accept()
         c.play_audio.path = mCustomAudioPath;
 
     c.idle_timeout = ui->mIdleTimeoutSpinbox->value() * 60;
+    c.count_idle_as_break = ui->mCountIdleAsBreakCheckbox->isChecked();
     app_settings::save(c);
 
     emit accepted();

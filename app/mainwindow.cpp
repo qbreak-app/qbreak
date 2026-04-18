@@ -562,7 +562,36 @@ void MainWindow::onIdleEnd()
     if (mState != AppState::Idle)
         return;
 
+    // If idle lasted at least as long as a break, optionally treat it as a
+    // completed break and start a fresh work period instead of resuming.
+    bool counts_as_break = false;
+    if (mIdleStart && mAppConfig.count_idle_as_break)
+    {
+        auto elapsed_secs = std::chrono::duration_cast<std::chrono::seconds>(
+                    std::chrono::steady_clock::now() - *mIdleStart).count();
+        // User was already idle for idle_timeout before we switched to Idle.
+        int total_idle = static_cast<int>(elapsed_secs) + mAppConfig.idle_timeout;
+        if (total_idle >= mAppConfig.longbreak_length)
+        {
+            counts_as_break = true;
+            qDebug() << "Idle of " << total_idle << "s counts as a completed break; starting fresh work period.";
+        }
+    }
+
     mIdleStart.reset();
+
+    if (counts_as_break)
+    {
+        mRemainingWorkInterval.reset();
+        mPostponeCount = 0;
+
+        mBreakStartTimer->stop();
+        mBreakStartTimer->start(std::chrono::seconds(mAppConfig.longbreak_interval));
+        mBreakNotifyTimer->stop();
+        if (mAppConfig.longbreak_interval > INTERVAL_NOTIFICATION)
+            mBreakNotifyTimer->start(std::chrono::seconds(mAppConfig.longbreak_interval - INTERVAL_NOTIFICATION));
+        return;
+    }
 
     // Update timer(s) duration
     if (mRemainingWorkInterval)

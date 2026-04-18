@@ -14,6 +14,7 @@ const QString Key_Audio_Name                    = "Audio_Name";
 const QString Key_Audio_Path                    = "Audio_Path";
 const QString Key_Script                        = "Script";
 const QString Key_Idle_Timeout                  = "Idle_Timeout";
+const QString Key_Count_Idle_As_Break           = "Count_Idle_As_Break";
 
 void app_settings::save(const config &cfg)
 {
@@ -30,6 +31,7 @@ void app_settings::save(const config &cfg)
     s.setValue(Key_Audio_Path,                  cfg.play_audio.path);
     s.setValue(Key_Script,                      cfg.script_on_break_finish);
     s.setValue(Key_Idle_Timeout,                cfg.idle_timeout);
+    s.setValue(Key_Count_Idle_As_Break,         cfg.count_idle_as_break);
 }
 
 app_settings::config app_settings::load()
@@ -48,6 +50,7 @@ app_settings::config app_settings::load()
     r.play_audio.path               = s.value(Key_Audio_Path,                   QString()).toString();
     r.script_on_break_finish        = s.value(Key_Script,                       QString()).toString();
     r.idle_timeout                  = s.value(Key_Idle_Timeout,                 Default_Idle_Timeout).toInt();
+    r.count_idle_as_break           = s.value(Key_Count_Idle_As_Break,          Default_Count_Idle_As_Break).toBool();
 
     return r;
 }
