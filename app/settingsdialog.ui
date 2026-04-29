@@ -6,24 +6,18 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>359</height>
+    <width>560</width>
+    <height>540</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>746</width>
-    <height>220</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>800</width>
-    <height>400</height>
+    <width>520</width>
+    <height>0</height>
    </size>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Settings</string>
   </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>
@@ -32,141 +26,268 @@
    <bool>false</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>12</number>
+   </property>
+   <property name="leftMargin">
+    <number>12</number>
+   </property>
+   <property name="topMargin">
+    <number>12</number>
+   </property>
+   <property name="rightMargin">
+    <number>12</number>
+   </property>
+   <property name="bottomMargin">
+    <number>12</number>
+   </property>
    <item>
-    <layout class="QFormLayout" name="formLayout">
-     <property name="leftMargin">
-      <number>8</number>
+    <widget class="QGroupBox" name="mBreakScheduleGroup">
+     <property name="title">
+      <string>Break schedule</string>
      </property>
-     <property name="topMargin">
-      <number>8</number>
+     <layout class="QFormLayout" name="formLayoutSchedule">
+      <property name="labelAlignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="horizontalSpacing">
+       <number>12</number>
+      </property>
+      <property name="verticalSpacing">
+       <number>8</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_interval">
+        <property name="text">
+         <string>Interval between breaks</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="mBreakIntervalEdit">
+        <property name="suffix">
+         <string> min</string>
+        </property>
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>1440</number>
+        </property>
+        <property name="value">
+         <number>45</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_duration">
+        <property name="text">
+         <string>Break duration</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="mBreakDurationEdit">
+        <property name="suffix">
+         <string> min</string>
+        </property>
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>1440</number>
+        </property>
+        <property name="value">
+         <number>15</number>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_postpone">
+        <property name="text">
+         <string>Postpone duration</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QSpinBox" name="mPostponeTimeEdit">
+        <property name="suffix">
+         <string> min</string>
+        </property>
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>1440</number>
+        </property>
+        <property name="value">
+         <number>5</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="mIdleGroup">
+     <property name="title">
+      <string>Idle detection</string>
      </property>
-     <property name="rightMargin">
-      <number>8</number>
+     <layout class="QFormLayout" name="formLayoutIdle">
+      <property name="labelAlignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="horizontalSpacing">
+       <number>12</number>
+      </property>
+      <property name="verticalSpacing">
+       <number>8</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_idle">
+        <property name="text">
+         <string>Inactivity timeout</string>
+        </property>
+        <property name="toolTip">
+         <string>Time without input before the user is considered idle. Set to 0 to disable idle tracking.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="mIdleTimeoutSpinbox">
+        <property name="toolTip">
+         <string>Time without input before the user is considered idle. Set to 0 to disable idle tracking.</string>
+        </property>
+        <property name="suffix">
+         <string> min</string>
+        </property>
+        <property name="specialValueText">
+         <string>Disabled</string>
+        </property>
+        <property name="minimum">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <number>1440</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="QCheckBox" name="mCountIdleAsBreakCheckbox">
+        <property name="text">
+         <string>Count long inactivity as a break</string>
+        </property>
+        <property name="toolTip">
+         <string>If enabled, an idle period that lasts at least one break duration counts as a taken break and resets the schedule.</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="mOnFinishGroup">
+     <property name="title">
+      <string>When a break finishes</string>
      </property>
-     <property name="bottomMargin">
-      <number>6</number>
+     <layout class="QFormLayout" name="formLayoutFinish">
+      <property name="labelAlignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="horizontalSpacing">
+       <number>12</number>
+      </property>
+      <property name="verticalSpacing">
+       <number>8</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_audio">
+        <property name="text">
+         <string>Play sound</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="mAudioComboBox">
+        <property name="editable">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_script">
+        <property name="text">
+         <string>Run shell command</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="mScriptEdit">
+        <property name="placeholderText">
+         <string>optional, e.g. notify-send &quot;Break is over&quot;</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="mGeneralGroup">
+     <property name="title">
+      <string>General</string>
      </property>
-     <item row="0" column="0">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Autostart</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QCheckBox" name="mAutostartCheckbox">
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Window on top</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QCheckBox" name="mWindowOnTopCheckbox">
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="label_3">
-       <property name="text">
-        <string>Break interval (minutes)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QLineEdit" name="mBreakIntervalEdit"/>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="label_4">
-       <property name="text">
-        <string>Break duration (minutes)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1">
-      <widget class="QLineEdit" name="mBreakDurationEdit"/>
-     </item>
-     <item row="5" column="0">
-      <widget class="QLabel" name="label_5">
-       <property name="text">
-        <string>Postpone time (minutes)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="1">
-      <widget class="QLineEdit" name="mPostponeTimeEdit"/>
-     </item>
-     <item row="6" column="0">
-      <widget class="QLabel" name="label_6">
-       <property name="text">
-        <string>Preferred monitor</string>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="1">
-      <widget class="QComboBox" name="mPreferredMonitorCombobox"/>
-     </item>
-     <item row="8" column="0">
-      <widget class="QLabel" name="label_7">
-       <property name="text">
-        <string>Audio to play when break finish</string>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="1">
-      <widget class="QComboBox" name="mAudioComboBox">
-       <property name="editable">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="9" column="0">
-      <widget class="QLabel" name="label_8">
-       <property name="text">
-        <string>Shell command to run when break finish</string>
-       </property>
-      </widget>
-     </item>
-     <item row="9" column="1">
-      <widget class="QLineEdit" name="mScriptEdit"/>
-     </item>
-     <item row="10" column="0">
-      <widget class="QLabel" name="label_9">
-       <property name="text">
-        <string>Idle timeout in minutes (zero means no idle tracking)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="10" column="1">
-      <widget class="QSpinBox" name="mIdleTimeoutSpinbox">
-       <property name="suffix">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item row="11" column="0">
-      <widget class="QLabel" name="label_10">
-       <property name="text">
-        <string>Count long idle as a break</string>
-       </property>
-      </widget>
-     </item>
-     <item row="11" column="1">
-      <widget class="QCheckBox" name="mCountIdleAsBreakCheckbox">
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-    </layout>
+     <layout class="QFormLayout" name="formLayoutGeneral">
+      <property name="labelAlignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="horizontalSpacing">
+       <number>12</number>
+      </property>
+      <property name="verticalSpacing">
+       <number>8</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_monitor">
+        <property name="text">
+         <string>Show break on</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="mPreferredMonitorCombobox"/>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="QCheckBox" name="mAutostartCheckbox">
+        <property name="text">
+         <string>Start automatically when I log in</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0" colspan="2">
+       <widget class="QCheckBox" name="mWindowOnTopCheckbox">
+        <property name="text">
+         <string>Keep the break window on top of other windows</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Expanding</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>1</height>
+      </size>
+     </property>
+    </spacer>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">

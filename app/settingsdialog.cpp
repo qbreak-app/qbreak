@@ -34,9 +34,9 @@ void SettingsDialog::init()
     auto c = app_settings::load();
     ui->mAutostartCheckbox->setChecked(c.autostart);
     ui->mWindowOnTopCheckbox->setChecked(c.window_on_top);
-    ui->mBreakIntervalEdit->setText(QString::number(c.longbreak_interval / 60));
-    ui->mBreakDurationEdit->setText(QString::number(c.longbreak_length / 60));
-    ui->mPostponeTimeEdit->setText(QString::number(c.longbreak_postpone_interval / 60));
+    ui->mBreakIntervalEdit->setValue(c.longbreak_interval / 60);
+    ui->mBreakDurationEdit->setValue(c.longbreak_length / 60);
+    ui->mPostponeTimeEdit->setValue(c.longbreak_postpone_interval / 60);
 
     ui->mPreferredMonitorCombobox->addItem(Primary_Monitor, Primary_Monitor);
     int found_idx = 0;
@@ -82,9 +82,9 @@ void SettingsDialog::accept()
 
     c.autostart = ui->mAutostartCheckbox->isChecked();
     c.window_on_top = ui->mWindowOnTopCheckbox->isChecked();
-    c.longbreak_interval = ui->mBreakIntervalEdit->text().toInt() * 60;
-    c.longbreak_length = ui->mBreakDurationEdit->text().toInt() * 60;
-    c.longbreak_postpone_interval = ui->mPostponeTimeEdit->text().toInt() * 60;
+    c.longbreak_interval = ui->mBreakIntervalEdit->value() * 60;
+    c.longbreak_length = ui->mBreakDurationEdit->value() * 60;
+    c.longbreak_postpone_interval = ui->mPostponeTimeEdit->value() * 60;
     c.preferred_monitor = ui->mPreferredMonitorCombobox->currentData().toString();
     c.script_on_break_finish = ui->mScriptEdit->text();
     c.play_audio.name = ui->mAudioComboBox->currentText();
